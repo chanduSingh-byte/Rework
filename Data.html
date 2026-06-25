@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Rework Data Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        /* ── Brand Colors ── */
+        --clr-blue: #3b82f6;
+        --clr-blue-bg: #eff6ff;
+        --clr-blue-text: #1d4ed8;
+
+        --clr-green: #16a34a;
+        --clr-green-bg: #f0fdf4;
+        --clr-green-text: #15803d;
+
+        --clr-amber: #d97706;
+        --clr-amber-bg: #fef3c7;
+        --clr-amber-text: #b45309;
+        --clr-amber-dark: #92400e;
+
+        --clr-purple: #7c3aed;
+        --clr-purple-bg: #fdf4ff;
+        --clr-purple-text: #7e22ce;
+
+        --clr-indigo: #6366f1;
+
+        /* ── Backgrounds ── */
+        --clr-bg-page: #dce1e7;
+        --clr-bg-card: #ffffff;
+        --clr-bg-header: #ffffff;
+        --clr-bg-stats: #fafbfc;
+        --clr-bg-table-head: #fafbfc;
+        --clr-bg-row-hover: #f8faff;
+        --clr-bg-search: #f8fafc;
+
+        /* ── Borders ── */
+        --clr-border: #f1f3f5;
+        --clr-border-input: #e2e8f0;
+        --clr-border-focus: #93c5fd;
+
+        /* ── Text ── */
+        --clr-text-primary: #111827;
+        --clr-text-secondary: #374151;
+        --clr-text-muted: #94a3b8;
+        --clr-text-th: #64748b;
+
+        /* ── Process Badge Colors ── */
+        --clr-p0-bg: #eff6ff;
+        --clr-p0-text: #1d4ed8;
+        --clr-p1-bg: #f0fdf4;
+        --clr-p1-text: #15803d;
+        --clr-p2-bg: #fef3c7;
+        --clr-p2-text: #b45309;
+        --clr-p3-bg: #fdf4ff;
+        --clr-p3-text: #7e22ce;
+        --clr-p4-bg: #fff1f2;
+        --clr-p4-text: #be123c;
+        --clr-p5-bg: #f0fdfa;
+        --clr-p5-text: #0f766e;
+        --clr-p6-bg: #fff7ed;
+        --clr-p6-text: #c2410c;
+        --clr-p7-bg: #f1f5f9;
+        --clr-p7-text: #334155;
+
+        /* ── Radius ── */
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --radius-full: 9999px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--clr-bg-page);
+        min-height: 100vh;
+        padding: 24px 16px;
+        color: var(--clr-text-primary);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spin {
+        animation: spin 0.8s linear infinite;
+      }
+
+      ::-webkit-scrollbar {
+        height: 4px;
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      #searchBox:focus-within {
+        border-color: var(--clr-border-focus) !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+      }
+      #refreshBtn:hover {
+        background: var(--clr-bg-search);
+        border-color: #cbd5e1;
+      }
+      #refreshBtn:active {
+        transform: scale(0.98);
+      }
+
+      tbody tr:hover td {
+        background: var(--clr-bg-row-hover);
+      }
+      tbody tr {
+        transition: background 0.1s;
+      }
+
+      th {
+        transition: color 0.1s;
+      }
+      th:hover {
+        color: var(--clr-text-secondary) !important;
+      }
+      th.sorted {
+        color: var(--clr-blue) !important;
+      }
+      th.sorted .arrow {
+        opacity: 1 !important;
+      }
+      .arrow {
+        margin-left: 4px;
+        opacity: 0.3;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      style="
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--clr-bg-card);
+        border-radius: var(--radius-xl);
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          0 8px 24px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      "
+    >
+      <!-- ── Header ── -->
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 18px 24px;
+          border-bottom: 1px solid var(--clr-border);
+          background: var(--clr-bg-header);
+          flex-wrap: wrap;
+          gap: 12px;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div
+            style="
+              width: 36px;
+              height: 36px;
+              border-radius: var(--radius-md);
+              background: var(--clr-blue-bg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--clr-blue)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+          </div>
+          <span
+            style="
+              font-size: 17px;
+              font-weight: 600;
+              color: var(--clr-text-primary);
+              letter-spacing: -0.01em;
+            "
+            >Rework Dashboard</span
+          >
+          <span
+            style="
+              font-size: 10px;
+              font-weight: 600;
+              padding: 3px 8px;
+              border-radius: var(--radius-full);
+              background: var(--clr-green-bg);
+              color: var(--clr-green);
+              letter-spacing: 0.05em;
+              text-transform: uppercase;
+            "
+            >● Live</span
+          >
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <div
+            id="searchBox"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: var(--clr-bg-search);
+              border: 1px solid var(--clr-border-input);
+              border-radius: var(--radius-md);
+              padding: 0 12px;
+              height: 36px;
+              transition:
+                border-color 0.15s,
+                box-shadow 0.15s;
+            "
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--clr-text-muted)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search records…"
+              oninput="filterTable()"
+              style="
+                border: none;
+                background: transparent;
+                font-size: 13px;
+                color: var(--clr-text-secondary);
+                outline: none;
+                width: 180px;
+                font-family: &quot;Inter&quot;, sans-serif;
+              "
+            />
+          </div>
+          <button
+            onclick="loadData()"
+            id="refreshBtn"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              font-size: 13px;
+              font-weight: 500;
+              padding: 0 14px;
+              height: 36px;
+              border: 1px solid var(--clr-border-input);
+              border-radius: var(--radius-md);
+              background: var(--clr-bg-card);
+              color: var(--clr-text-secondary);
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            <svg
+              id="refreshIcon"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M23 4v6h-6" />
+              <path d="M1 20v-6h6" />
+              <path
+                d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+              />
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Stats ── -->
+      <div
+        id="statsRow"
+        style="
+          display: none;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 12px;
+          padding: 16px 24px;
+          background: var(--clr-bg-stats);
+          border-bottom: 1px solid var(--clr-border);
+        "
+      >
+        <div
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 10px;
+              font-weight: 600;
+              color: var(--clr-text-muted);
+              text-transform: uppercase;
+              letter-spacing: 0.07em;
+              margin-bottom: 6px;
+            "
+          >
+            Total Records
+          </div>
+          <div
+            id="statTotal"
+            style="
+              font-size: 24px;
+              font-weight: 600;
+              color: var(--clr-blue);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+        <div
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 10px;
+              font-weight: 600;
+              color: var(--clr-text-muted);
+              text-transform: uppercase;
+              letter-spacing: 0.07em;
+              margin-bottom: 6px;
+            "
+          >
+            Rework Qty
+          </div>
+          <div
+            id="statQty"
+            style="
+              font-size: 24px;
+              font-weight: 600;
+              color: var(--clr-amber);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+        <div
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 10px;
+              font-weight: 600;
+              color: var(--clr-text-muted);
+              text-transform: uppercase;
+              letter-spacing: 0.07em;
+              margin-bottom: 6px;
+            "
+          >
+            JRC Total
+          </div>
+          <div
+            id="statJRC"
+            style="
+              font-size: 24px;
+              font-weight: 600;
+              color: var(--clr-green);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+        <div
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 10px;
+              font-weight: 600;
+              color: var(--clr-text-muted);
+              text-transform: uppercase;
+              letter-spacing: 0.07em;
+              margin-bottom: 6px;
+            "
+          >
+            Processes
+          </div>
+          <div
+            id="statProc"
+            style="
+              font-size: 24px;
+              font-weight: 600;
+              color: var(--clr-purple);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Table ── -->
+      <div style="overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+          <thead>
+            <tr
+              style="
+                background: var(--clr-bg-table-head);
+                border-bottom: 1px solid var(--clr-border);
+              "
+            >
+              <th
+                onclick="sortTable('Rework_NO')"
+                id="th-Rework_NO"
+                style="
+                  width: 140px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                # Rework No <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Date')"
+                id="th-Date"
+                style="
+                  width: 150px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Date <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Hold_No')"
+                id="th-Hold_No"
+                style="
+                  width: 140px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Hold No <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Process')"
+                id="th-Process"
+                style="
+                  width: 220px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Process <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Item_Code')"
+                id="th-Item_Code"
+                style="
+                  width: 130px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Item Code <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('JRC_Total')"
+                id="th-JRC_Total"
+                style="
+                  width: 110px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                JRC Total <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Rework Qty')"
+                id="th-Rework Qty"
+                style="
+                  width: 110px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  color: var(--clr-text-th);
+                  text-transform: uppercase;
+                  letter-spacing: 0.07em;
+                  padding: 11px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Rework Qty <span class="arrow">↕</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="7">
+                <div
+                  style="
+                    text-align: center;
+                    padding: 48px 16px;
+                    color: var(--clr-text-muted);
+                  "
+                >
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#cbd5e1"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="display: block; margin: 0 auto 12px"
+                    class="spin"
+                  >
+                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                  </svg>
+                  <p style="font-size: 14px">Fetching data…</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Footer ── -->
+      <div
+        style="
+          padding: 10px 24px;
+          border-top: 1px solid var(--clr-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 12px;
+          color: var(--clr-text-muted);
+        "
+      >
+        <span id="footerCount">—</span>
+        <span id="footerTime">—</span>
+      </div>
+    </div>
+    <!-- /dashboard -->
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
+
+      /* ── Process badge color cycling ── */
+      const PROCESS_COLORS = ["p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+      const processMap = {};
+      let colorIdx = 0;
+
+      function getPC(p) {
+        if (!p) return "p7";
+        if (!processMap[p])
+          processMap[p] = PROCESS_COLORS[colorIdx++ % PROCESS_COLORS.length];
+        return processMap[p];
+      }
+
+      function pcStyle(c) {
+        const m = {
+          p0: "background:var(--clr-p0-bg);color:var(--clr-p0-text)",
+          p1: "background:var(--clr-p1-bg);color:var(--clr-p1-text)",
+          p2: "background:var(--clr-p2-bg);color:var(--clr-p2-text)",
+          p3: "background:var(--clr-p3-bg);color:var(--clr-p3-text)",
+          p4: "background:var(--clr-p4-bg);color:var(--clr-p4-text)",
+          p5: "background:var(--clr-p5-bg);color:var(--clr-p5-text)",
+          p6: "background:var(--clr-p6-bg);color:var(--clr-p6-text)",
+          p7: "background:var(--clr-p7-bg);color:var(--clr-p7-text)",
+        };
+        return m[c] || m.p7;
+      }
+
+      let allData = [],
+        sortKey = null,
+        sortAsc = true;
+
+      /* ── Load Data ── */
+      async function loadData() {
+        const tbody = document.getElementById("tableBody");
+        const icon = document.getElementById("refreshIcon");
+        icon.classList.add("spin");
+        document.getElementById("statsRow").style.display = "none";
+        tbody.innerHTML = `<tr><td colspan="7">
+        <div style="text-align:center;padding:48px 16px;color:var(--clr-text-muted);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px;" class="spin">
+              <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
+            <p style="font-size:14px;">Fetching data…</p>
+        </div></td></tr>`;
+        try {
+          const res = await fetch(API_URL);
+          const json = await res.json();
+          allData = json.data && json.data.length ? json.data : [];
+          console.log("📥 Loaded", allData, "records");
+          if (!allData.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:48px 16px;color:var(--clr-text-muted);"><p style="font-size:14px;">No records found.</p></div></td></tr>`;
+            document.getElementById("footerCount").textContent = "0 records";
+          } else {
+            updateStats(allData);
+            document.getElementById("statsRow").style.display = "grid";
+            renderTable(allData);
+            document.getElementById("footerTime").textContent =
+              "Updated " + new Date().toLocaleTimeString();
+          }
+        } catch (e) {
+          tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:48px 16px;"><p style="font-size:14px;color:#ef4444;">Could not load data. Please refresh.</p></div></td></tr>`;
+          document.getElementById("footerCount").textContent = "Load failed";
+        } finally {
+          icon.classList.remove("spin");
+        }
+      }
+
+      /* ── Stats ── */
+      function updateStats(data) {
+        const qty = data.reduce(
+          (a, r) => a + (parseFloat(r["Rework Qty"]) || 0),
+          0,
+        );
+        const jrc = data.reduce(
+          (a, r) => a + (parseFloat(r.JRC_Total) || 0),
+          0,
+        );
+        const proc = new Set(data.map((r) => r.Process).filter(Boolean)).size;
+        document.getElementById("statTotal").textContent = data.length;
+        document.getElementById("statQty").textContent =
+          Math.round(qty).toLocaleString();
+        document.getElementById("statJRC").textContent =
+          Math.round(jrc).toLocaleString();
+        document.getElementById("statProc").textContent = proc;
+      }
+
+      /* ── Render Table ── */
+      function renderTable(data) {
+        const tbody = document.getElementById("tableBody");
+        if (!data.length) {
+          tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:48px 16px;color:var(--clr-text-muted);"><p style="font-size:14px;">No matching records.</p></div></td></tr>`;
+          document.getElementById("footerCount").textContent = "0 records";
+          return;
+        }
+        tbody.innerHTML = data
+          .map((item) => {
+            const qty = item["Rework Qty"];
+            const qtyHtml = qty
+              ? `<span style="display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;border-radius:var(--radius-full);background:var(--clr-amber-bg);color:var(--clr-amber-dark);font-family:'JetBrains Mono',monospace;">${qty}</span>`
+              : `<span style="color:#d1d5db;font-size:13px;">—</span>`;
+            const pc = getPC(item.Process);
+            return `<tr style="border-bottom:1px solid var(--clr-border);">
+            <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--clr-indigo);font-weight:500;white-space:nowrap;">${item.Rework_NO || "—"}</td>
+            <td style="padding:11px 16px;color:var(--clr-text-muted);font-size:12px;white-space:nowrap;">${item.Date || "—"}</td>
+            <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--clr-indigo);font-weight:500;white-space:nowrap;">${item.Hold_No || "—"}</td>
+            <td style="padding:11px 16px;">
+              <span style="display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--radius-sm);white-space:nowrap;${pcStyle(pc)}">${item.Process || "—"}</span>
+            </td>
+            <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--clr-blue);font-weight:500;white-space:nowrap;">${item.Item_Code || "—"}</td>
+            <td style="padding:11px 16px;font-weight:500;color:var(--clr-text-secondary);white-space:nowrap;">${item.JRC_Total || "—"}</td>
+            <td style="padding:11px 16px;">${qtyHtml}</td>
+          </tr>`;
+          })
+          .join("");
+        document.getElementById("footerCount").textContent =
+          data.length + " record" + (data.length !== 1 ? "s" : "");
+      }
+
+      /* ── Search ── */
+      function filterTable() {
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        renderTable(
+          allData.filter((r) =>
+            Object.values(r).some((v) => String(v).toLowerCase().includes(q)),
+          ),
+        );
+      }
+
+      /* ── Sort ── */
+      function sortTable(key) {
+        document.querySelectorAll("th").forEach((t) => {
+          t.classList.remove("sorted");
+          const a = t.querySelector(".arrow");
+          if (a) a.textContent = "↕";
+        });
+        const th = document.getElementById("th-" + key);
+        if (sortKey === key) sortAsc = !sortAsc;
+        else {
+          sortKey = key;
+          sortAsc = true;
+        }
+        if (th) {
+          th.classList.add("sorted");
+          const a = th.querySelector(".arrow");
+          if (a) a.textContent = sortAsc ? "↑" : "↓";
+        }
+        const sorted = [...allData].sort((a, b) => {
+          const va = a[key] || "",
+            vb = b[key] || "";
+          const na = parseFloat(va),
+            nb = parseFloat(vb);
+          const c =
+            !isNaN(na) && !isNaN(nb)
+              ? na - nb
+              : String(va).localeCompare(String(vb));
+          return sortAsc ? c : -c;
+        });
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        renderTable(
+          q
+            ? sorted.filter((r) =>
+                Object.values(r).some((v) =>
+                  String(v).toLowerCase().includes(q),
+                ),
+              )
+            : sorted,
+        );
+      }
+
+      /* ── Init ── */
+      loadData();
+    </script>
+  </body>
+</html>

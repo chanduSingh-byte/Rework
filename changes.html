@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rework Entry Form</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        /* padding: 20px 0; */
+        margin: 0;
+      }
+
+      .container {
+        /* max-width: 1650px; */
+        max-width: 100%;
+        margin: auto;
+        background: #fff;
+        padding: 30px;
+        /* border-radius: 20px; */
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #007bff, #28a745, #ffc107, #dc3545);
+        animation: shimmer 2s infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h2 {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .section-title {
+        color: #2c3e50;
+        font-weight: 600;
+        margin: 30px 0 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #007bff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.3rem;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .form-control,
+      .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fafbfc;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+        background: #fff;
+        transform: translateY(-2px);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border: none;
+        border-radius: 15px;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+      }
+
+      /* Skeleton */
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: skeletonLoad 1.5s infinite;
+        border-radius: 8px;
+        height: 45px;
+        margin: 5px 0;
+      }
+
+      .skeleton-sm {
+        height: 35px;
+      }
+
+      @keyframes skeletonLoad {
+        0% {
+          background-position: 200% 0;
+        }
+
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* Loading Overlay */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+      }
+
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        font-size: 1.2rem;
+        color: #007bff;
+        font-weight: 600;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          margin: 10px;
+          padding: 20px;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+          gap: 15px;
+        }
+
+        .header h2 {
+          font-size: 1.8rem;
+        }
+      }
+
+      .remark-box {
+        width: 100%;
+      }
+
+      #remark {
+        width: 700px;
+        min-height: 65px;
+        /* height increase */
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        resize: vertical;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text">
+        Data is Loading <i class="fas fa-cog fa-spin"></i>
+      </div>
+    </div>
+
+    <div class="container" id="mainContainer" style="display: none">
+      <div class="header">
+        <h2><i class="fas fa-tools"></i> SYSTEM</h2>
+        <p class="text-muted mt-2">Quality Control &amp; Rework Management</p>
+      </div>
+
+      <form id="reworkForm">
+        <h4 class="section-title">
+          <i class="fas fa-info-circle"></i> Hold Card Details
+        </h4>
+        <div class="form-grid" id="basicDetails">
+          <!-- Skeleton placeholders -->
+          <div>
+            <div class="skeleton"></div>
+          </div>
+          <div>
+            <div class="skeleton"></div>
+          </div>
+          <div>
+            <div class="skeleton"></div>
+          </div>
+          <div>
+            <div class="skeleton"></div>
+          </div>
+          <div>
+            <div class="skeleton"></div>
+          </div>
+        </div>
+
+        <h4 class="section-title"><i class="fas fa-bug"></i> Defect Details</h4>
+        <div id="defectCards" class="row g-3"></div>
+
+        <div class="text-center mt-3">
+          <button type="button" id="loadMoreBtn" class="btn btn-primary">
+            Load More
+          </button>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-4">
+          <i class="fas fa-paper-plane"></i> Submit Rework Data
+        </button>
+      </form>
+    </div>
+
+    <script>
+      console.log(
+        "%c Backend Working",
+        "background: #007bff; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold;",
+      );
+      // ── API endpoints ──────────────────────────────────────────────────────
+      const REWORK_API =
+        "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=rework";
+      const DEFECT_ITEMS_API =
+        "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=getDefectItems";
+      const DEFECT_SOLUTION_API =
+        "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=defect";
+
+      // ── State ──────────────────────────────────────────────────────────────
+      // Global Variables
+      const TOTAL_CARDS = 6;
+      const CARDS_STEP = 3;
+      let visibleCards = CARDS_STEP;
+
+      let reworkData = [];
+      let defectsData = [];
+      let defectSolutionData = [];
+
+      // ── Helpers ────────────────────────────────────────────────────────────Start Here
+      function buildDefectOptions() {
+        let list = [];
+
+        if (Array.isArray(defectSolutionData)) {
+          list = defectSolutionData;
+          console.log("Defects data is an array:", list);
+        } else if (
+          defectSolutionData &&
+          typeof defectSolutionData === "object"
+        ) {
+          if (Array.isArray(defectSolutionData.data)) {
+            list = defectSolutionData.data;
+          } else if (defectSolutionData.error) {
+            list = [];
+          } else {
+            list = Object.values(defectSolutionData);
+          }
+        }
+
+        // Duplicate defects remove
+        const uniqueDefects = [...new Set(list.map((d) => d.defect))];
+
+        return (
+          '<option value="">Select Defect</option>' +
+          uniqueDefects
+            .map((defect) => `<option value="${defect}">${defect}</option>`)
+            .join("")
+        );
+      }
+      // ── Helpers ────────────────────────────────────────────────────────────End Here
+
+      // ── Render defect cards (idempotent – always rebuilds from scratch) ────
+      function renderCards() {
+        const container = document.getElementById("defectCards");
+        const options = buildDefectOptions();
+        let html = "";
+
+        for (let i = 1; i <= TOTAL_CARDS; i++) {
+          const hidden = i > visibleCards ? "d-none" : "";
+          html += `
+            <div class="col-md-4 ${hidden}" id="card_${i}">
+              <div class="card shadow h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold text-primary mb-2">Defect #${i}</h6>
+                  <select  name="defect_${i}"    class="form-select defect-select mb-2" data-row="${i}">${options}</select>
+                  <input   type="number" name="qty_${i}"        class="form-control mb-2" placeholder="Qty">
+                  <input   type="text"   name="orp_${i}"        class="form-control mb-2" placeholder="ORP">
+                  <input   type="text"   name="obs_${i}"        class="form-control mb-2" placeholder="Observation">
+                  <textarea              name="solution_${i}"   id="solution_${i}" class="form-control mb-2" rows="3" readonly placeholder="Solution (auto-filled)"></textarea>
+                  <input   type="number" name="ok_${i}"         class="form-control mb-2" placeholder="OK">
+                  <input   type="number" name="not_ok_${i}"     class="form-control mb-2" placeholder="Not OK">
+                  <input   type="text"   name="rework_obs_${i}" class="form-control mb-2" placeholder="Rework Observation">
+                  <input   type="text"   name="check_by_${i}"   class="form-control mb-2" placeholder="Check By">
+                  <input   type="text"   name="rework_by_${i}"  class="form-control mb-2" placeholder="Rework By">
+                </div>
+              </div>
+            </div>`;
+        }
+
+        container.innerHTML = html;
+        attachDefectEvents();
+        updateLoadMoreBtn();
+      }
+
+      function updateLoadMoreBtn() {
+        const btn = document.getElementById("loadMoreBtn");
+        btn.style.display =
+          visibleCards >= TOTAL_CARDS ? "none" : "inline-block";
+      }
+
+      // ── Auto-fill solution when a defect is picked ─────────────────────────
+      function attachDefectEvents() {
+        document.querySelectorAll(".defect-select").forEach((select) => {
+          select.addEventListener("change", function () {
+            const row = this.dataset.row;
+            const selected = this.value.trim().toLowerCase();
+
+            const field = document.getElementById(`solution_${row}`);
+
+            const matches = defectSolutionData.filter(
+              (d) => d.defect.trim().toLowerCase() === selected,
+            );
+
+            field.value = matches.length
+              ? matches.map((m, i) => `${i + 1}. ${m.solution}`).join("\n")
+              : "";
+          });
+        });
+      }
+      // Date Format
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+
+        const d = String(date.getDate()).padStart(2, "0");
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const y = date.getFullYear();
+
+        let h = date.getHours();
+        const ampm = h >= 12 ? "PM" : "AM";
+
+        h = h % 12 || 12;
+
+        const min = String(date.getMinutes()).padStart(2, "0");
+        const sec = String(date.getSeconds()).padStart(2, "0");
+
+        return `${d}/${m}/${y} ${String(h).padStart(2, "0")}:${min}:${sec} ${ampm}`;
+      }
+
+      function renderBasicDetails() {
+        const options =
+          `<option value=""> Select Hold Card   </option>` +
+          reworkData
+            .map(
+              (item) =>
+                `<option value="${item["Hold Number"]}">
+                  ${item["Hold Number"]}
+                </option>`,
+            )
+            .join("");
+
+        console.log(reworkData);
+
+        document.getElementById("basicDetails").innerHTML = `
+
+                  <div>
+                    <label class="form-label">📦 Hold No </label>
+                    <select name="hold_no" id="hold_no" class="form-select" required>
+                      ${options}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="form-label">📌 Hold_Genereated</label>
+                    <input type="text" name="Hold_Genereated" class="form-control"
+                      placeholder="Hold_Genereated" readonly>
+                  </div>
+
+                  <div>
+                    <label class="form-label">⚙️ Hold Process</label>
+                    <input type="text" name="process" class="form-control"
+                      placeholder="Auto Select process" readonly>
+                  </div>
+
+                  <div>
+                    <label class="form-label">📄 Item Code</label>
+                    <input type="text" name="item_code" class="form-control"
+                      placeholder="Auto Select item code" readonly>
+                  </div>
+
+                  <div>
+                    <label class="form-label">📊 JRC Total</label>
+                    <input type="number" name="jrc_total" class="form-control"
+                      placeholder="0" readonly>
+                  </div>
+
+                  <div>
+                    <label class="form-label">🔧 Rework Qty</label>
+                    <input type="number" name="rework_qty" class="form-control"
+                      placeholder="0" readonly>
+                  </div>
+
+                  <div>
+                    <label class="form-label">📝 Job Card NO</label>
+                    <input type="text" name="job_card_no" class="form-control"
+                      placeholder="Job Card NO" readonly>
+                  </div>
+
+                  <div>
+                    <label class="form-label">📝 Defect</label>
+                    <input type="text" name="Defect" class="form-control"
+                      placeholder="Defect" readonly>
+                  </div>
+
+                  <div class="remark-box">
+                      <label class="form-label">📌 Remark</label>
+
+                      <!-- textarea use karo for wrap + bigger width -->
+                      <textarea
+                        name="Remark"
+                        class="form-control"
+                        id="remark"
+                        placeholder="Remark"
+                        readonly
+                      ></textarea>
+                    </div>
+                `;
+
+        // Hold No Change Event
+        document
+          .getElementById("hold_no")
+          .addEventListener("change", function () {
+            const data = reworkData.find(
+              (d) =>
+                String(d["Hold Number"]).trim() === String(this.value).trim(),
+            );
+
+            if (data) {
+              document.querySelector("[name='process']").value =
+                data["Process Name"] || "N/A";
+
+              document.querySelector("[name='item_code']").value =
+                data["Part"] || "N/A";
+
+              document.querySelector("[name='jrc_total']").value =
+                data["JRC--Qty"] || "N/A";
+
+              document.querySelector("[name='rework_qty']").value =
+                data["Rej Qty"] || "N/A";
+
+              document.querySelector("[name='job_card_no']").value =
+                data["Job Card NO"] || "N/A";
+
+              document.querySelector("[name='Remark']").value =
+                data["Remark"] || "N/A";
+
+              document.querySelector("[name='Defect']").value =
+                data["Defect Item"] || "N/A";
+
+              document.querySelector("[name='Hold_Genereated']").value = data[
+                "HC_No-Generated At"
+              ]
+                ? formatDate(data["HC_No-Generated At"])
+                : "N/A";
+            }
+          });
+      }
+
+      // ── Load More button ──────────────────────────────────────────────────
+      document.getElementById("loadMoreBtn").addEventListener("click", () => {
+        const prev = visibleCards;
+        visibleCards = Math.min(visibleCards + CARDS_STEP, TOTAL_CARDS);
+
+        // Reveal newly visible cards
+        for (let i = prev + 1; i <= visibleCards; i++) {
+          document.getElementById(`card_${i}`)?.classList.remove("d-none");
+        }
+
+        updateLoadMoreBtn();
+      });
+
+      // ── Submit ─────────────────────────────────────────────────────────────
+
+      document
+        .getElementById("reworkForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const form = this;
+          const submitBtn = form.querySelector('button[type="submit"]');
+          const originalHTML = submitBtn.innerHTML;
+
+          submitBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Saving...';
+          submitBtn.disabled = true;
+
+          const formData = Object.fromEntries(new FormData(form).entries());
+          console.log("📤 Sending:", formData);
+
+          fetch(
+            "https://script.google.com/macros/s/AKfycbzfY1J2Z6Xs5mMGPGLmCka9fKGCHruFezzQXaah4dTULFrALJPOqLVG_KZVemFxaCdS/exec",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                action: "REWORK_SAVE",
+                ...formData,
+              }),
+            },
+          )
+            .then((res) => res.json())
+            .then((res) => {
+              console.table(formData);
+              console.log("✅ Response:", res);
+
+              if (res.status === "success") {
+                // ✅ Toast Success
+                Toastify({
+                  text: "✅ Data Saved Successfully!",
+                  duration: 4000,
+                  gravity: "top",
+                  position: "right",
+                  close: true,
+                  style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)",
+                  },
+                }).showToast();
+
+                Toastify({
+                  text: `✅ Rework No: ${res.reworkNo}`,
+                  duration: 15000,
+                  gravity: "top",
+                  position: "right",
+                  close: true,
+                  style: {
+                    background: "linear-gradient(135deg, #667eea, #764ba2)", // modern purple gradient
+                    color: "#fff",
+                    borderRadius: "8px",
+                    boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
+                    fontWeight: "500",
+                  },
+                }).showToast();
+
+                // ✅ Button UI
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                submitBtn.className = "btn btn-success w-100 mt-4";
+
+                // ✅ Reset form
+                form.reset();
+
+                // ✅ Clear solutions manually
+                for (let i = 1; i <= 12; i++) {
+                  const sol = document.getElementById(`solution_${i}`);
+                  if (sol) sol.value = "";
+                }
+              } else {
+                throw new Error(res.message);
+              }
+
+              setTimeout(() => {
+                submitBtn.innerHTML = originalHTML;
+                submitBtn.className = "btn btn-primary w-100 mt-4";
+                submitBtn.disabled = false;
+              }, 2000);
+            })
+            .catch((err) => {
+              console.error("❌ Error:", err);
+
+              // ❌ Toast Error
+              Toastify({
+                text: "❌ Failed to save data!",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                close: true,
+                style: {
+                  background: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                },
+              }).showToast();
+
+              submitBtn.innerHTML = '<i class="fas fa-times"></i> Failed!';
+              submitBtn.className = "btn btn-danger w-100 mt-4";
+
+              setTimeout(() => {
+                submitBtn.innerHTML = originalHTML;
+                submitBtn.className = "btn btn-primary w-100 mt-4";
+                submitBtn.disabled = false;
+              }, 2000);
+            });
+        });
+
+      async function loadAllData() {
+        try {
+          const [reworkRes, defectsRes, solutionRes] = await Promise.all([
+            fetch(REWORK_API),
+            fetch(DEFECT_ITEMS_API),
+            fetch(DEFECT_SOLUTION_API),
+          ]);
+
+          // Rework Data
+          reworkData = await reworkRes.json();
+
+          // Defect Items Data
+          const defectsJson = await defectsRes.json();
+
+          // SAFE ARRAY
+          // If API returns an error object like { error: 'Invalid action' },
+          // surface it and fall back to an empty array to avoid runtime errors.
+          if (
+            defectsJson &&
+            typeof defectsJson === "object" &&
+            defectsJson.error
+          ) {
+            console.error("Defects API error:", defectsJson);
+            showToast(`Defects API error: ${defectsJson.error}`, "error");
+            // defectsData = [];
+          } else {
+            defectsData = defectsJson.data || defectsJson || [];
+          }
+          console.log("Defects API:", defectsData);
+
+          // Solution Data
+          const solutionJson = await solutionRes.json();
+
+          if (
+            solutionJson &&
+            typeof solutionJson === "object" &&
+            solutionJson.error
+          ) {
+            console.error("Defect solution API error:", solutionJson);
+            showToast(
+              `Defect solution API error: ${solutionJson.error}`,
+              "error",
+            );
+            defectSolutionData = [];
+          } else {
+            defectSolutionData = solutionJson.data || [];
+          }
+
+          console.log(defectSolutionData);
+
+          renderBasicDetails();
+          renderCards();
+
+          // Reveal UI
+          setTimeout(() => {
+            document.getElementById("loadingOverlay").style.display = "none";
+            document.getElementById("mainContainer").style.display = "block";
+          }, 500);
+        } catch (err) {
+          console.error("Load error:", err);
+
+          document.getElementById("loadingOverlay").innerHTML = `
+      <div style="text-align:center;color:#dc3545">
+        <i class="fas fa-exclamation-triangle"
+           style="font-size:4rem;margin-bottom:20px"></i>
+
+        <h3>Failed to load data</h3>
+
+        <p>Please check your connection and refresh</p>
+
+        <button class="btn btn-primary"
+                onclick="location.reload()">
+
+          <i class="fas fa-redo"></i> Retry
+
+        </button>
+      </div>
+    `;
+        }
+      }
+
+      loadAllData();
+
+      // toster Start
+      function showToast(message, type = "success") {
+        Toastify({
+          text: message,
+          duration: 3000,
+          gravity: "top", // top or bottom
+          position: "right", // left, center, right
+          close: true,
+          stopOnFocus: true,
+          style: {
+            background:
+              type === "success"
+                ? "linear-gradient(to right, #00b09b, #96c93d)"
+                : "linear-gradient(to right, #ff416c, #ff4b2b)",
+          },
+        }).showToast();
+      }
+      // toster End
+    </script>
+  </body>
+</html>
