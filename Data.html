@@ -214,8 +214,9 @@
             >Rework Dashboard</span
           >
           <span
+            id="footerTime"
             style="
-              font-size: 10px;
+              font-size: 16px;
               font-weight: 600;
               padding: 3px 8px;
               border-radius: var(--radius-full);
@@ -227,6 +228,7 @@
             >● Live</span
           >
         </div>
+
         <div style="display: flex; align-items: center; gap: 8px">
           <div
             id="searchBox"
@@ -650,7 +652,6 @@
         "
       >
         <span id="footerCount">—</span>
-        <span id="footerTime">—</span>
       </div>
     </div>
     <!-- /dashboard -->
@@ -715,8 +716,7 @@
             updateStats(allData);
             document.getElementById("statsRow").style.display = "grid";
             renderTable(allData);
-            document.getElementById("footerTime").textContent =
-              "Updated " + new Date().toLocaleTimeString();
+            // document.getElementById("footerTime").textContent = new Date().toLocaleTimeString();
           }
         } catch (e) {
           tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:48px 16px;"><p style="font-size:14px;color:#ef4444;">Could not load data. Please refresh.</p></div></td></tr>`;
@@ -726,6 +726,22 @@
         }
       }
 
+      function updateFooterTime() {
+        const now = new Date();
+
+        const timeString = now.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        });
+
+        document.getElementById("footerTime").textContent = timeString;
+      }
+
+      // हर 1 second में update
+      updateFooterTime(); // first run immediately
+      setInterval(updateFooterTime, 1000);
       /* ── Stats ── */
       function updateStats(data) {
         const qty = data.reduce(
