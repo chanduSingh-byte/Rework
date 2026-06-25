@@ -1,1 +1,1 @@
-console.log("Common.js loaded successfully.");
+console.log("Changes In Scripts Files");
