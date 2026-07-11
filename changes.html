@@ -261,7 +261,7 @@
 
     <div class="container" id="mainContainer" style="display: none">
       <div class="header">
-        <h2><i class="fas fa-tools"></i> SPS</h2>
+        <h2><i class="fas fa-tools"></i> SYSTEM</h2>
         <p class="text-muted mt-2">Quality Control &amp; Rework Management</p>
       </div>
 
@@ -292,7 +292,12 @@
         <div id="defectCards" class="row g-3"></div>
 
         <div class="text-center mt-3">
-          <button type="button" id="loadMoreBtn" class="btn btn-primary">
+          <button
+            type="button"
+            id="loadMoreBtn"
+            class="btn btn-primary"
+            required
+          >
             Load More
           </button>
         </div>
@@ -356,9 +361,44 @@
             .join("")
         );
       }
+
+      // Filed Required Logic if ()
+
       // ── Helpers ────────────────────────────────────────────────────────────End Here
 
       // ── Render defect cards (idempotent – always rebuilds from scratch) ────
+      // function renderCards() {
+      //   const container = document.getElementById("defectCards");
+      //   const options = buildDefectOptions();
+      //   let html = "";
+
+      //   for (let i = 1; i <= TOTAL_CARDS; i++) {
+      //     const hidden = i > visibleCards ? "d-none" : "";
+      //     html += `
+      //       <div class="col-md-4 ${hidden}" id="card_${i}">
+      //         <div class="card shadow h-100">
+      //           <div class="card-body">
+      //             <h6 class="fw-bold text-primary mb-2">Defect #${i}</h6>
+      //             <select  name="defect_${i}"    class="form-select defect-select mb-2" data-row="${i}">${options}</select>
+      //             <input   type="number" name="qty_${i}"        class="form-control mb-2" placeholder="Qty" required>
+      //             <input   type="text"   name="orp_${i}"        class="form-control mb-2" placeholder="Specification" required>
+      //             <input   type="text"   name="obs_${i}"        class="form-control mb-2" placeholder="Observation" required>
+      //             <textarea              name="solution_${i}"   id="solution_${i}" class="form-control mb-2" rows="3" required readonly placeholder="Solution (auto-filled)"></textarea>
+      //             <input   type="number" name="ok_${i}"         class="form-control mb-2" placeholder="OK" required>
+      //             <input   type="number" name="not_ok_${i}"     class="form-control mb-2" placeholder="Not OK" required>
+      //             <input   type="text"   name="rework_obs_${i}" class="form-control mb-2" placeholder="Rework Observation" required>
+      //             <input   type="text"   name="check_by_${i}"   class="form-control mb-2" placeholder="Check By" required>
+      //             <input   type="text"   name="rework_by_${i}"  class="form-control mb-2" placeholder="Rework By" required>
+      //           </div>
+      //         </div>
+      //       </div>`;
+      //   }
+
+      //   container.innerHTML = html;
+      //   attachDefectEvents();
+      //   updateLoadMoreBtn();
+      // }
+
       function renderCards() {
         const container = document.getElementById("defectCards");
         const options = buildDefectOptions();
@@ -366,28 +406,106 @@
 
         for (let i = 1; i <= TOTAL_CARDS; i++) {
           const hidden = i > visibleCards ? "d-none" : "";
+
           html += `
-            <div class="col-md-4 ${hidden}" id="card_${i}">
-              <div class="card shadow h-100">
-                <div class="card-body">
-                  <h6 class="fw-bold text-primary mb-2">Defect #${i}</h6>
-                  <select  name="defect_${i}"    class="form-select defect-select mb-2" data-row="${i}">${options}</select>
-                  <input   type="number" name="qty_${i}"        class="form-control mb-2" placeholder="Qty">
-                  <input   type="text"   name="orp_${i}"        class="form-control mb-2" placeholder="ORP">
-                  <input   type="text"   name="obs_${i}"        class="form-control mb-2" placeholder="Observation">
-                  <textarea              name="solution_${i}"   id="solution_${i}" class="form-control mb-2" rows="3" readonly placeholder="Solution (auto-filled)"></textarea>
-                  <input   type="number" name="ok_${i}"         class="form-control mb-2" placeholder="OK">
-                  <input   type="number" name="not_ok_${i}"     class="form-control mb-2" placeholder="Not OK">
-                  <input   type="text"   name="rework_obs_${i}" class="form-control mb-2" placeholder="Rework Observation">
-                  <input   type="text"   name="check_by_${i}"   class="form-control mb-2" placeholder="Check By">
-                  <input   type="text"   name="rework_by_${i}"  class="form-control mb-2" placeholder="Rework By">
-                </div>
-              </div>
-            </div>`;
+        <div class="col-md-4 ${hidden}" id="card_${i}">
+          <div class="card shadow h-100">
+            <div class="card-body">
+
+              <h6 class="fw-bold text-primary mb-2">Defect #${i}</h6>
+
+              <select name="defect_${i}" 
+                      class="form-select defect-select mb-2" 
+                      data-row="${i}">
+                  ${options}
+              </select>
+
+              <input type="number" 
+                     name="qty_${i}" 
+                     class="form-control mb-2 defect-field" 
+                     data-card="${i}" 
+                     placeholder="Qty">
+
+              <input type="text" 
+                     name="orp_${i}" 
+                     class="form-control mb-2 defect-field" 
+                     data-card="${i}" 
+                     placeholder="Specification">
+
+              <input type="text" 
+                     name="obs_${i}" 
+                     class="form-control mb-2 defect-field" 
+                     data-card="${i}" 
+                     placeholder="Observation">
+
+              <textarea name="solution_${i}" 
+                        id="solution_${i}" 
+                        class="form-control mb-2 defect-field"
+                        data-card="${i}"
+                        // rows="3" 
+                        readonly 
+                        placeholder="Solution (auto-filled)"></textarea>
+
+              <input type="number" 
+                     name="ok_${i}" 
+                     class="form-control mb-2 defect-field"
+                     data-card="${i}"
+                     placeholder="OK">
+
+              <input type="number" 
+                     name="not_ok_${i}" 
+                     class="form-control mb-2 defect-field"
+                     data-card="${i}"
+                     placeholder="Not OK">
+
+              <input type="text" 
+                     name="rework_obs_${i}" 
+                     class="form-control mb-2 defect-field"
+                     data-card="${i}"
+                     placeholder="Rework Observation">
+
+              <input type="text" 
+                     name="check_by_${i}" 
+                     class="form-control mb-2 defect-field"
+                     data-card="${i}"
+                     placeholder="Check By">
+
+              <input type="text" 
+                     name="rework_by_${i}" 
+                     class="form-control mb-2 defect-field"
+                     data-card="${i}"
+                     placeholder="Rework By">
+
+            </div>
+          </div>
+        </div>`;
         }
 
         container.innerHTML = html;
+
         attachDefectEvents();
+
+        // Required logic
+        document.querySelectorAll(".defect-select").forEach((select) => {
+          select.addEventListener("change", function () {
+            const cardNo = this.dataset.row;
+            console.log(`Defect select changed for card ${cardNo}:`);
+            const fields = document.querySelectorAll(
+              `.defect-field[data-card="${cardNo}"]`,
+            );
+            console.table(`Fields for card `, fields);
+
+            fields.forEach((field) => {
+              if (this.value !== "") {
+                field.required = true;
+              } else {
+                field.required = false;
+                field.value = "";
+              }
+            });
+          });
+        });
+
         updateLoadMoreBtn();
       }
 
@@ -460,43 +578,43 @@
 
                   <div>
                     <label class="form-label">📌 Hold_Genereated</label>
-                    <input type="text" name="Hold_Genereated" class="form-control"
+                    <input type="text" name="Hold_Genereated" class="form-control" required
                       placeholder="Hold_Genereated" readonly>
                   </div>
 
                   <div>
                     <label class="form-label">⚙️ Hold Process</label>
-                    <input type="text" name="process" class="form-control"
+                    <input type="text" name="process" class="form-control" required
                       placeholder="Auto Select process" readonly>
                   </div>
 
                   <div>
                     <label class="form-label">📄 Item Code</label>
-                    <input type="text" name="item_code" class="form-control"
+                    <input type="text" name="item_code" class="form-control" required
                       placeholder="Auto Select item code" readonly>
                   </div>
 
                   <div>
                     <label class="form-label">📊 JRC Total</label>
-                    <input type="number" name="jrc_total" class="form-control"
+                    <input type="number" name="jrc_total" class="form-control" required
                       placeholder="0" readonly>
                   </div>
 
                   <div>
                     <label class="form-label">🔧 Rework Qty</label>
-                    <input type="number" name="rework_qty" class="form-control"
+                    <input type="number" name="rework_qty" class="form-control" required
                       placeholder="0" readonly>
                   </div>
 
                   <div>
                     <label class="form-label">📝 Job Card NO</label>
-                    <input type="text" name="job_card_no" class="form-control"
+                    <input type="text" name="job_card_no" class="form-control" required
                       placeholder="Job Card NO" readonly>
                   </div>
 
                   <div>
                     <label class="form-label">📝 Defect</label>
-                    <input type="text" name="Defect" class="form-control"
+                    <input type="text" name="Defect" class="form-control" required
                       placeholder="Defect" readonly>
                   </div>
 
@@ -510,6 +628,7 @@
                         id="remark"
                         placeholder="Remark"
                         readonly
+                        required
                       ></textarea>
                     </div>
                 `;
