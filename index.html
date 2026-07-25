@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="hi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple 2-Screen Page</title>
+    <style>
+      :root {
+        --bg: #0e0f17;
+        --bg-soft: #171927;
+        --bg-card: #1c1e2e;
+        --accent: #7c8cff;
+        --accent-warm: #ffb454;
+        --text: #f2f2f7;
+        --text-dim: #9a9cb5;
+        --border: rgba(124, 140, 255, 0.15);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background:
+          radial-gradient(
+            circle at 15% 10%,
+            rgba(124, 140, 255, 0.1),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 85% 90%,
+            rgba(255, 180, 84, 0.08),
+            transparent 40%
+          ),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 32px;
+        z-index: 10;
+        backdrop-filter: blur(8px);
+        background: rgba(14, 15, 23, 0.6);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .logo {
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        font-size: 30px;
+      }
+
+      .logo span {
+        color: var(--accent-warm);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 8px;
+      }
+
+      .nav-links a {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 100px;
+        transition: all 0.2s ease;
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+        background: rgba(124, 140, 255, 0.12);
+      }
+
+      .screen {
+        display: none;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 100px 24px 40px;
+        text-align: center;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .screen.active {
+        display: flex;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .eyebrow {
+        letter-spacing: 3px;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--accent-warm);
+        margin-bottom: 16px;
+        font-weight: 600;
+      }
+
+      h1 {
+        font-size: clamp(32px, 6vw, 56px);
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        max-width: 700px;
+      }
+
+      p.desc {
+        color: var(--text-dim);
+        font-size: 17px;
+        max-width: 480px;
+        margin-bottom: 36px;
+        line-height: 1.6;
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 520px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      }
+
+      .btn-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+        padding: 14px 28px;
+        border-radius: 100px;
+        font-weight: 600;
+        font-size: 15px;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+        cursor: pointer;
+        border: none;
+      }
+
+      .nav-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(124, 140, 255, 0.35);
+      }
+
+      .nav-link.secondary {
+        background: transparent;
+        border: 1px solid rgba(242, 242, 247, 0.2);
+        color: var(--text);
+      }
+
+      .nav-link.outline {
+        background: transparent;
+        border: 1px solid var(--accent-warm);
+        color: var(--accent-warm);
+      }
+
+      .badge {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+        margin: 0 auto 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="logo">SPS</div>
+      <div class="nav-links">
+        <a href="./v2_Data.html">Data</a>
+        <a href="./changes.html">Changes</a>
+      </div>
+    </nav>
+
+    <!-- Screen 1 -->
+    <section id="screen1" class="screen active">
+      <div class="eyebrow">Screen 01</div>
+      <h1>Welcome to Screen One</h1>
+      <p class="desc">
+        Ye pehla screen hai. Neeche diye gaye link se aap doosre screen par ja
+        sakte hain, ya top nav se Data aur Changes pages dekh sakte hain.
+      </p>
+      <div class="btn-row">
+        <a class="nav-link" href="changes.html">Rework</a>
+        <a class="nav-link outline" href="v2_Data.html">View Data</a>
+      </div>
+    </section>
+
+    <!-- Screen 2 -->
+    <section id="screen2" class="screen">
+      <div class="card">
+        <div class="badge"></div>
+        <div class="eyebrow">Screen 02</div>
+        <h1 style="font-size: 32px">You're on Screen Two</h1>
+        <p class="desc">
+          Yahan se aap wapas pehle screen par bhi ja sakte hain.
+        </p>
+        <a class="nav-link secondary" onclick="showScreen('screen1')"
+          >← Back to Screen 1</a
+        >
+      </div>
+    </section>
+
+    <script>
+      function showScreen(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+      }
+    </script>
+  </body>
+</html>
