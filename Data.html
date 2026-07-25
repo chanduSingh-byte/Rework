@@ -776,17 +776,42 @@
               ? `<span style="display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;border-radius:var(--radius-full);background:var(--clr-amber-bg);color:var(--clr-amber-dark);font-family:'JetBrains Mono',monospace;">${qty}</span>`
               : `<span style="color:#d1d5db;font-size:13px;">—</span>`;
             const pc = getPC(item.Process);
-            return `<tr style="border-bottom:1px solid var(--clr-border);">
-            <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--clr-indigo);font-weight:500;white-space:nowrap;">${item.Rework_NO || "—"}</td>
-            <td style="padding:11px 16px;color:var(--clr-text-muted);font-size:12px;white-space:nowrap;">${item.Date || "—"}</td>
-            <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--clr-indigo);font-weight:500;white-space:nowrap;">${item.Hold_No || "—"}</td>
-            <td style="padding:11px 16px;">
-              <span style="display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--radius-sm);white-space:nowrap;${pcStyle(pc)}">${item.Process || "—"}</span>
-            </td>
-            <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--clr-blue);font-weight:500;white-space:nowrap;">${item.Item_Code || "—"}</td>
-            <td style="padding:11px 16px;font-weight:500;color:var(--clr-text-secondary);white-space:nowrap;">${item.JRC_Total || "—"}</td>
-            <td style="padding:11px 16px;">${qtyHtml}</td>
-          </tr>`;
+            return `
+<tr
+    style="border-bottom:1px solid var(--clr-border);cursor:pointer;"
+    onclick="showDetails(${allData.indexOf(item)})">
+
+    <td style="padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--clr-indigo);font-weight:500;">
+        ${item.Rework_NO || "—"}
+    </td>
+
+    <td style="padding:11px 16px;">
+        ${item.Date || "—"}
+    </td>
+
+    <td style="padding:11px 16px;">
+        ${item.Hold_No || "—"}
+    </td>
+
+    <td style="padding:11px 16px;">
+        <span style="${pcStyle(pc)}">
+            ${item.Process || "—"}
+        </span>
+    </td>
+
+    <td style="padding:11px 16px;">
+        ${item.Item_Code || "—"}
+    </td>
+
+    <td style="padding:11px 16px;">
+        ${item.JRC_Total || "—"}
+    </td>
+
+    <td style="padding:11px 16px;">
+        ${qtyHtml}
+    </td>
+
+</tr>`;
           })
           .join("");
         document.getElementById("footerCount").textContent =
@@ -846,6 +871,42 @@
 
       /* ── Init ── */
       loadData();
+    </script>
+
+    <script>
+      function showDetails(index) {
+        console.log("Click");
+        const row = allData[index];
+
+        console.log(row);
+
+        let html = "";
+
+        for (let i = 1; i <= 6; i++) {
+          if (!row[`Defect_${i}`]) continue;
+
+          html += `
+        <div class="border rounded-lg p-4 mb-3">
+
+            <h3>Defect ${i}</h3>
+
+            <p><b>Defect :</b> ${row[`Defect_${i}`]}</p>
+            <p><b>Qty :</b> ${row[`Qty_${i}`]}</p>
+            <p><b>ORP :</b> ${row[`ORP_${i}`]}</p>
+            <p><b>Observation :</b> ${row[`Obs_${i}`]}</p>
+            <p><b>Solution :</b> ${row[`Solution_${i}`]}</p>
+            <p><b>OK :</b> ${row[`OK_${i}`]}</p>
+            <p><b>Not OK :</b> ${row[`NotOK_${i}`]}</p>
+            <p><b>Rework Obs :</b> ${row[`ReworkObs_${i}`]}</p>
+            <p><b>Check By :</b> ${row[`CheckBy_${i}`]}</p>
+            <p><b>Rework By :</b> ${row[`ReworkBy_${i}`]}</p>
+
+        </div>`;
+        }
+
+        document.getElementById("detailBody").innerHTML = html;
+        document.getElementById("detailModal").style.display = "flex";
+      }
     </script>
   </body>
 </html>

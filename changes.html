@@ -315,7 +315,7 @@
       );
       // ── API endpoints ──────────────────────────────────────────────────────
       const REWORK_API =
-        "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=rework";
+        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=rework";
       const DEFECT_ITEMS_API =
         "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=getDefectItems";
       const DEFECT_SOLUTION_API =
@@ -705,7 +705,7 @@
           console.log("📤 Sending:", formData);
 
           fetch(
-            "https://script.google.com/macros/s/AKfycbzfY1J2Z6Xs5mMGPGLmCka9fKGCHruFezzQXaah4dTULFrALJPOqLVG_KZVemFxaCdS/exec",
+            "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec",
             {
               method: "POST",
               body: JSON.stringify({
@@ -746,6 +746,8 @@
                     fontWeight: "500",
                   },
                 }).showToast();
+
+                loadAllData();
 
                 // ✅ Button UI
                 submitBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
@@ -804,8 +806,15 @@
           ]);
 
           // Rework Data
-          reworkData = await reworkRes.json();
+          // reworkData = await reworkRes.json();
+          // Rework Data
+          const reworkJson = await reworkRes.json();
+          reworkData = reworkJson.data || [];
 
+          // reworkData = await reworkRes.json();
+
+          console.log("Rework API Response:", reworkData);
+          console.log("Is Array:", Array.isArray(reworkData));
           // Defect Items Data
           const defectsJson = await defectsRes.json();
 
