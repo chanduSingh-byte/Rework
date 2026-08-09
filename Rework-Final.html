@@ -1,1364 +1,1388 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rework Entry — QC Job Card</title>
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;600&display=swap"
-      rel="stylesheet"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rework Entry — QC Job Card</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;600&display=swap"
+    rel="stylesheet" />
 
-    <style>
-      /* ============ Design tokens ============ */
-      :root {
-        --ink: #101828;
-        --ink-soft: #57617a;
-        --canvas: #f2f4f7;
-        --card: #ffffff;
-        --line: #e2e6ec;
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-        --accent: #0f766e;
-        --accent-dark: #0b5a54;
-        --accent-light: #14b8a6;
-        --accent-glow: rgba(15, 118, 110, 0.25);
+  <style>
+    /* ============ Design tokens ============ */
+    :root {
+      --ink: #101828;
+      --ink-soft: #57617a;
+      --canvas: #f2f4f7;
+      --card: #ffffff;
+      --line: #e2e6ec;
 
-        --gold: #c9a227;
-        --gold-dark: #a9820f;
-        --gold-light: #e8cd75;
-        --gold-glow: rgba(201, 162, 39, 0.28);
+      --accent: #0f766e;
+      --accent-dark: #0b5a54;
+      --accent-light: #14b8a6;
+      --accent-glow: rgba(15, 118, 110, 0.25);
 
-        --ok: #16a34a;
-        --ok-bg: #eafaf1;
-        --bad: #dc2626;
-        --bad-bg: #fdecec;
+      --gold: #c9a227;
+      --gold-dark: #a9820f;
+      --gold-light: #e8cd75;
+      --gold-glow: rgba(201, 162, 39, 0.28);
 
-        --radius: 12px;
-        --font-display: "Barlow Condensed", sans-serif;
-        --font-body: "Inter", sans-serif;
-        --font-mono: "Roboto Mono", monospace;
-        --shadow-card:
-          0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.08);
-        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
+      --ok: #16a34a;
+      --ok-bg: #eafaf1;
+      --bad: #dc2626;
+      --bad-bg: #fdecec;
 
-      * {
-        box-sizing: border-box;
-      }
+      --radius: 12px;
+      --font-display: "Barlow Condensed", sans-serif;
+      --font-body: "Inter", sans-serif;
+      --font-mono: "Roboto Mono", monospace;
+      --shadow-card:
+        0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.08);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-      body {
-        font-family: var(--font-body);
-        background: var(--canvas);
-        background-image:
-          radial-gradient(
-            circle at 100% 0%,
-            rgba(15, 118, 110, 0.07),
-            transparent 42%
-          ),
-          radial-gradient(
-            circle at 0% 100%,
-            rgba(201, 162, 39, 0.06),
-            transparent 45%
-          );
-        background-attachment: fixed;
-        min-height: 100vh;
-        margin: 0;
-        color: var(--ink);
-        padding: 24px 0 60px;
-      }
+    * {
+      box-sizing: border-box;
+    }
 
-      .hazard-strip {
-        height: 6px;
-        width: 100%;
-        background: repeating-linear-gradient(
-          -45deg,
+    body {
+      font-family: var(--font-body);
+      background: var(--canvas);
+      background-image:
+        radial-gradient(circle at 100% 0%,
+          rgba(15, 118, 110, 0.07),
+          transparent 42%),
+        radial-gradient(circle at 0% 100%,
+          rgba(201, 162, 39, 0.06),
+          transparent 45%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      padding: 24px 0 60px;
+    }
+
+    .hazard-strip {
+      height: 6px;
+      width: 100%;
+      background: repeating-linear-gradient(-45deg,
           var(--ink),
           var(--ink) 12px,
           var(--gold) 12px,
-          var(--gold) 24px
-        );
-        background-size: 200% 100%;
-        animation: hazardCrawl 14s linear infinite;
+          var(--gold) 24px);
+      background-size: 200% 100%;
+      animation: hazardCrawl 14s linear infinite;
+    }
+
+    @keyframes hazardCrawl {
+      from {
+        background-position: 0 0;
       }
 
-      @keyframes hazardCrawl {
-        from {
-          background-position: 0 0;
-        }
-        to {
-          background-position: -68px 0;
-        }
+      to {
+        background-position: -68px 0;
       }
+    }
 
-      .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        background: var(--card);
-        padding: 0 0 32px;
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-card);
-        overflow: hidden;
-        animation: containerIn 0.5s var(--ease-spring) both;
-      }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--card);
+      padding: 0 0 32px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      animation: containerIn 0.5s var(--ease-spring) both;
+    }
 
-      @keyframes containerIn {
-        from {
-          opacity: 0;
-          transform: translateY(14px) scale(0.99);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      .header {
-        text-align: center;
-        padding: 32px 20px 24px;
-        border-bottom: 1px solid var(--line);
-        background: linear-gradient(180deg, #fff 0%, #fbfcfc 100%);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .header::before {
-        content: "";
-        position: absolute;
-        top: -60%;
-        left: 50%;
-        width: 500px;
-        height: 220px;
-        background: radial-gradient(
-          circle,
-          var(--accent-glow),
-          transparent 70%
-        );
-        transform: translateX(-50%);
-        pointer-events: none;
-      }
-
-      .header .eyebrow {
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        color: var(--gold-dark);
-        font-weight: 600;
-        position: relative;
+    @keyframes containerIn {
+      from {
         opacity: 0;
-        animation: dropIn 0.5s ease 0.05s both;
+        transform: translateY(14px) scale(0.99);
       }
 
-      .header h2 {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 2.7rem;
-        letter-spacing: 1px;
-        margin: 4px 0 6px;
-        background: linear-gradient(
-          100deg,
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .header {
+      text-align: center;
+      padding: 32px 20px 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fff 0%, #fbfcfc 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: "";
+      position: absolute;
+      top: -60%;
+      left: 50%;
+      width: 500px;
+      height: 220px;
+      background: radial-gradient(circle,
+          var(--accent-glow),
+          transparent 70%);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .header .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      font-weight: 600;
+      position: relative;
+      opacity: 0;
+      animation: dropIn 0.5s ease 0.05s both;
+    }
+
+    .header h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 2.7rem;
+      letter-spacing: 1px;
+      margin: 4px 0 6px;
+      background: linear-gradient(100deg,
           var(--ink) 30%,
           var(--accent) 50%,
-          var(--ink) 70%
-        );
-        background-size: 220% 100%;
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation:
-          dropIn 0.55s ease 0.12s both,
-          sheen 7s ease-in-out 1s infinite;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 14px;
-        text-transform: uppercase;
-        position: relative;
-      }
+          var(--ink) 70%);
+      background-size: 220% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation:
+        dropIn 0.55s ease 0.12s both,
+        sheen 7s ease-in-out 1s infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      text-transform: uppercase;
+      position: relative;
+    }
 
-      .header h2 i {
-        color: var(--gold-dark);
-        -webkit-text-fill-color: initial;
-      }
+    .header h2 i {
+      color: var(--gold-dark);
+      -webkit-text-fill-color: initial;
+    }
 
-      .header .subtitle {
-        color: var(--ink-soft);
-        font-size: 0.95rem;
-        margin: 0;
-        position: relative;
+    .header .subtitle {
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+      margin: 0;
+      position: relative;
+      opacity: 0;
+      animation: dropIn 0.5s ease 0.2s both;
+    }
+
+    @keyframes dropIn {
+      from {
         opacity: 0;
-        animation: dropIn 0.5s ease 0.2s both;
+        transform: translateY(-8px);
       }
 
-      @keyframes dropIn {
-        from {
-          opacity: 0;
-          transform: translateY(-8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes sheen {
-        0%,
-        100% {
-          background-position: 0% 0;
-        }
-        50% {
-          background-position: 100% 0;
-        }
-      }
-
-      .form-body {
-        padding: 28px 30px 0;
-      }
-
-      .section-title {
-        font-family: var(--font-display);
-        color: var(--ink);
-        font-weight: 700;
-        font-size: 1.5rem;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        margin: 34px 0 18px;
-        padding-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        position: relative;
-      }
-
-      .section-title::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 3px;
-        background: repeating-linear-gradient(
-          -45deg,
-          var(--ink),
-          var(--ink) 8px,
-          var(--gold) 8px,
-          var(--gold) 16px
-        );
-        opacity: 0.9;
-      }
-
-      .section-title i {
-        color: var(--gold-dark);
-      }
-
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 18px 20px;
-      }
-
-      .form-grid > :last-child {
-        grid-column: span 2;
-      }
-
-      @media (max-width: 1100px) {
-        .form-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .form-grid > :last-child {
-          grid-column: span 2;
-        }
-      }
-
-      @media (max-width: 576px) {
-        .form-grid {
-          grid-template-columns: 1fr;
-        }
-        .form-grid > :last-child {
-          grid-column: span 1;
-        }
-      }
-
-      .form-label {
-        font-weight: 600;
-        font-size: 0.82rem;
-        color: var(--ink-soft);
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        margin-bottom: 6px;
-        display: block;
-      }
-
-      .form-control,
-      .form-select {
-        border: 1.5px solid var(--line);
-        border-radius: 9px;
-        padding: 10px 13px;
-        font-size: 0.96rem;
-        background: #fff;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease,
-          transform 0.15s ease;
-        color: var(--ink);
-        width: 100%;
-      }
-
-      .form-control[readonly] {
-        background: #f7f8f9;
-        color: var(--ink-soft);
-      }
-
-      .form-control:focus,
-      .form-select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 4px var(--accent-glow);
-        outline: none;
-      }
-
-      .form-control:hover:not([readonly]):not(:focus),
-      .form-select:hover:not(:focus) {
-        border-color: var(--accent-light);
-      }
-
-      .form-control.field-invalid,
-      .form-select.field-invalid {
-        border-color: var(--bad);
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-        animation: shake 0.35s ease;
-      }
-
-      @keyframes shake {
-        0%,
-        100% {
-          transform: translateX(0);
-        }
-        25% {
-          transform: translateX(-4px);
-        }
-        75% {
-          transform: translateX(4px);
-        }
-      }
-
-      .btn-primary,
-      .btn-accent {
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
-      }
-
-      .btn-primary {
-        background: linear-gradient(
-          135deg,
-          var(--accent-light),
-          var(--accent-dark)
-        );
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 14px 28px;
-        font-size: 1rem;
-        font-weight: 700;
-        letter-spacing: 0.6px;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition:
-          transform 0.25s var(--ease-spring),
-          box-shadow 0.25s ease,
-          background 0.25s ease;
-        box-shadow: 0 6px 18px rgba(11, 90, 84, 0.32);
-      }
-
-      .btn-primary::before,
-      .btn-accent::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -120%;
-        width: 70%;
-        height: 100%;
-        background: linear-gradient(
-          120deg,
-          transparent,
-          rgba(255, 255, 255, 0.4),
-          transparent
-        );
-        transform: skewX(-20deg);
-        transition: left 0.6s ease;
-        z-index: 1;
-      }
-
-      .btn-primary:hover::before,
-      .btn-accent:hover::before {
-        left: 140%;
-      }
-
-      .btn-primary:hover {
-        background: linear-gradient(135deg, var(--accent-light), var(--accent));
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 14px 30px rgba(11, 90, 84, 0.42);
-      }
-
-      .btn-primary:active {
-        transform: translateY(-1px) scale(0.98);
-      }
-
-      .btn-accent {
-        background: linear-gradient(
-          135deg,
-          var(--gold-light),
-          var(--gold-dark)
-        );
-        color: #2a2205;
-        border: none;
-        border-radius: 10px;
-        font-weight: 700;
-        padding: 10px 22px;
-        letter-spacing: 0.4px;
-        cursor: pointer;
-        transition:
-          transform 0.25s var(--ease-spring),
-          box-shadow 0.25s ease;
-        box-shadow: 0 5px 15px rgba(169, 130, 15, 0.28);
-      }
-
-      .btn-accent:hover {
-        background: linear-gradient(135deg, #f0dc9a, var(--gold));
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 10px 24px rgba(169, 130, 15, 0.4);
-      }
-
-      .btn-accent:active {
-        transform: translateY(-1px) scale(0.97);
-      }
-
-      .ripple {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.55);
-        transform: scale(0);
-        animation: rippleAnim 0.65s ease-out forwards;
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      @keyframes rippleAnim {
-        to {
-          transform: scale(3.2);
-          opacity: 0;
-        }
-      }
-
-      .burst-particle {
-        position: fixed;
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 10000;
-        transform: translate(-50%, -50%);
-        animation: burstFly 0.7s ease-out forwards;
-      }
-
-      @keyframes burstFly {
-        0% {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 1;
-        }
-        100% {
-          transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
-            scale(0);
-          opacity: 0;
-        }
-      }
-
-      .btn-pop {
-        animation: popIn 0.4s var(--ease-spring);
-      }
-
-      @keyframes popIn {
-        0% {
-          transform: scale(0.85);
-        }
-        55% {
-          transform: scale(1.08);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      #defectCards .defect-card {
-        background: #fff;
-        border: 1.5px solid var(--line);
-        border-left: 5px solid var(--line);
-        border-radius: 12px;
-        padding: 18px;
-        height: 100%;
-        transition:
-          border-color 0.2s ease,
-          box-shadow 0.25s ease,
-          transform 0.25s ease;
-        animation: cardIn 0.4s var(--ease-spring) both;
-      }
-
-      .defect-card:hover {
-        box-shadow: 0 10px 26px rgba(16, 24, 40, 0.1);
-        transform: translateY(-3px);
-      }
-
-      .defect-card.state-active {
-        border-left-color: var(--accent);
-        box-shadow:
-          0 0 0 1px rgba(15, 118, 110, 0.14),
-          0 8px 20px rgba(15, 118, 110, 0.12);
-      }
-
-      .defect-card.state-ok {
-        border-left-color: var(--ok);
-        box-shadow:
-          0 0 0 1px rgba(22, 163, 74, 0.12),
-          0 8px 20px rgba(22, 163, 74, 0.1);
-      }
-
-      .defect-card.state-bad {
-        border-left-color: var(--bad);
-        box-shadow:
-          0 0 0 1px rgba(220, 38, 38, 0.12),
-          0 8px 20px rgba(220, 38, 38, 0.1);
-      }
-
-      .defect-card-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-      }
-
-      .defect-tag {
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 1px;
-        color: #fff;
-        background: var(--ink);
-        padding: 3px 9px;
-        border-radius: 5px;
-        text-transform: uppercase;
-        transition:
-          background 0.2s ease,
-          transform 0.2s var(--ease-spring);
-      }
-
-      .defect-card:hover .defect-tag {
-        transform: scale(1.05);
-      }
-      .state-active .defect-tag {
-        background: var(--accent-dark);
-      }
-      .state-ok .defect-tag {
-        background: var(--ok);
-      }
-      .state-bad .defect-tag {
-        background: var(--bad);
-      }
-
-      .defect-status-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--line);
-        transition:
-          background 0.2s ease,
-          box-shadow 0.2s ease;
-      }
-
-      .defect-card.state-active .defect-status-dot {
-        background: var(--accent);
-        box-shadow: 0 0 0 4px var(--accent-glow);
-        animation: dotPulse 1.4s ease-in-out infinite;
-      }
-
-      .defect-card.state-ok .defect-status-dot {
-        background: var(--ok);
-      }
-      .defect-card.state-bad .defect-status-dot {
-        background: var(--bad);
-      }
-
-      @keyframes dotPulse {
-        0%,
-        100% {
-          box-shadow: 0 0 0 3px var(--accent-glow);
-        }
-        50% {
-          box-shadow: 0 0 0 6px transparent;
-        }
-      }
-
-      .field-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .field-row .form-control,
-      .field-row .form-select {
-        margin-bottom: 10px;
-      }
-
-      #defectCards textarea.form-control {
-        min-height: 64px;
-        resize: vertical;
-        font-size: 0.88rem;
-      }
-
-      @keyframes cardIn {
-        from {
-          opacity: 0;
-          transform: translateY(14px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .skeleton {
-        background: linear-gradient(
-          90deg,
-          #eceef2 25%,
-          #dfe2e8 50%,
-          #eceef2 75%
-        );
-        background-size: 200% 100%;
-        animation: skeletonLoad 1.4s infinite;
-        border-radius: 8px;
-        height: 44px;
-      }
-
-      .skeleton-card {
-        height: 320px;
-        border-radius: 12px;
-      }
-
-      @keyframes skeletonLoad {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
-      }
-
-      .loading-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(242, 244, 247, 0.97);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        gap: 18px;
-        transition: opacity 0.25s ease;
-      }
-
-      .loading-overlay.fade-out {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .loader-mark {
-        width: 58px;
-        height: 58px;
-        border-radius: 50%;
-        border: 4px solid #dfe3e8;
-        border-top-color: var(--accent);
-        border-right-color: var(--gold);
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .loading-text {
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: var(--ink-soft);
-      }
-
-      .sync-pill {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--ink);
-        color: #fff;
-        font-size: 0.78rem;
-        font-family: var(--font-mono);
-        padding: 8px 14px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        opacity: 0;
-        transform: translateY(10px);
-        transition:
-          opacity 0.25s ease,
-          transform 0.25s ease;
-        pointer-events: none;
-        z-index: 50;
-      }
-
-      .sync-pill.show {
+      to {
         opacity: 1;
         transform: translateY(0);
       }
+    }
 
-      .sync-pill .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--gold);
-        animation: pulse 1s ease-in-out infinite;
-      }
+    @keyframes sheen {
 
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
+      0%,
+      100% {
+        background-position: 0% 0;
       }
 
-      .remark-box textarea#remark {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        resize: vertical;
+      50% {
+        background-position: 100% 0;
       }
-      .fade-in {
-        animation: fadeIn 0.4s ease both;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
+    }
+
+    .form-body {
+      padding: 28px 30px 0;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 34px 0 18px;
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .section-title::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 3px;
+      background: repeating-linear-gradient(-45deg,
+          var(--ink),
+          var(--ink) 8px,
+          var(--gold) 8px,
+          var(--gold) 16px);
+      opacity: 0.9;
+    }
+
+    .section-title i {
+      color: var(--gold-dark);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px 20px;
+    }
+
+    .form-grid> :last-child {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 1100px) {
+      .form-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
-      .load-more-wrap {
-        display: flex;
-        justify-content: end;
-        text-align: center;
-        margin-top: 18px;
+      .form-grid> :last-child {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .form-grid {
+        grid-template-columns: 1fr;
       }
 
-      .summary-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        flex-wrap: wrap;
-        margin-top: 18px;
-        padding: 16px 22px;
-        background: linear-gradient(135deg, #fdf9ec, #fbf3d9);
-        border: 1.5px solid var(--gold-glow);
-        border-radius: 14px;
-        box-shadow: 0 4px 14px rgba(201, 162, 39, 0.1);
-        transition:
-          background 0.25s ease,
-          border-color 0.25s ease;
-        animation: fadeIn 0.4s ease both;
+      .form-grid> :last-child {
+        grid-column: span 1;
+      }
+    }
+
+    .form-label {
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-control,
+    .form-select {
+      border: 1.5px solid var(--line);
+      border-radius: 9px;
+      padding: 10px 13px;
+      font-size: 0.96rem;
+      background: #fff;
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+      color: var(--ink);
+      width: 100%;
+    }
+
+    .form-control[readonly] {
+      background: #f7f8f9;
+      color: var(--ink-soft);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+      outline: none;
+    }
+
+    .form-control:hover:not([readonly]):not(:focus),
+    .form-select:hover:not(:focus) {
+      border-color: var(--accent-light);
+    }
+
+    .form-control.field-invalid,
+    .form-select.field-invalid {
+      border-color: var(--bad);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
       }
 
-      .summary-stats {
-        display: flex;
-        align-items: center;
-        gap: 36px;
-        flex-wrap: wrap;
+      25% {
+        transform: translateX(-4px);
       }
 
-      .summary-stat {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        min-width: 56px;
+      75% {
+        transform: translateX(4px);
       }
+    }
 
-      .summary-label {
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        font-weight: 600;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: var(--ink-soft);
-      }
+    .btn-primary,
+    .btn-accent {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
 
-      .summary-value {
-        font-family: var(--font-mono);
-        font-size: 1.35rem;
-        font-weight: 700;
-        color: var(--ink);
-        line-height: 1;
-        transition: color 0.2s ease;
-      }
+    .btn-primary {
+      background: linear-gradient(135deg,
+          var(--accent-light),
+          var(--accent-dark));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition:
+        transform 0.25s var(--ease-spring),
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+      box-shadow: 0 6px 18px rgba(11, 90, 84, 0.32);
+    }
 
-      .summary-value.summary-ok {
-        color: var(--ok);
-      }
-      .summary-value.summary-bad {
-        color: var(--bad);
-      }
+    .btn-primary::before,
+    .btn-accent::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(120deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent);
+      transform: skewX(-20deg);
+      transition: left 0.6s ease;
+      z-index: 1;
+    }
 
-      .summary-msg {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 9px 18px;
-        border-radius: 20px;
-        background: rgba(201, 162, 39, 0.16);
-        color: var(--gold-dark);
-        font-size: 0.86rem;
-        font-weight: 600;
-        white-space: nowrap;
-        transition:
-          background 0.2s ease,
-          color 0.2s ease;
-      }
+    .btn-primary:hover::before,
+    .btn-accent:hover::before {
+      left: 140%;
+    }
 
-      .summary-msg i {
-        font-size: 0.9rem;
-      }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 14px 30px rgba(11, 90, 84, 0.42);
+    }
 
-      .summary-msg.state-ok {
-        background: var(--ok-bg);
-        color: var(--ok);
-      }
+    .btn-primary:active {
+      transform: translateY(-1px) scale(0.98);
+    }
 
-      .summary-msg.state-bad {
-        background: var(--bad-bg);
-        color: var(--bad);
-      }
+    .btn-accent {
+      background: linear-gradient(135deg,
+          var(--gold-light),
+          var(--gold-dark));
+      color: #2a2205;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      padding: 10px 22px;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition:
+        transform 0.25s var(--ease-spring),
+        box-shadow 0.25s ease;
+      box-shadow: 0 5px 15px rgba(169, 130, 15, 0.28);
+    }
 
-      @media (max-width: 700px) {
-        .summary-bar {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        .summary-stats {
-          gap: 24px;
-        }
-        .summary-msg {
-          white-space: normal;
-        }
-      }
+    .btn-accent:hover {
+      background: linear-gradient(135deg, #f0dc9a, var(--gold));
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 24px rgba(169, 130, 15, 0.4);
+    }
 
-      button:focus-visible,
-      select:focus-visible,
-      input:focus-visible,
-      textarea:focus-visible {
-        outline: 3px solid var(--accent-glow);
-        outline-offset: 2px;
-      }
+    .btn-accent:active {
+      transform: translateY(-1px) scale(0.97);
+    }
 
-      @media (max-width: 768px) {
-        .form-body {
-          padding: 22px 16px 0;
-        }
-        .header h2 {
-          font-size: 1.9rem;
-        }
-        .field-row {
-          grid-template-columns: 1fr;
-        }
-      }
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.55);
+      transform: scale(0);
+      animation: rippleAnim 0.65s ease-out forwards;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 0.001ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.001ms !important;
-        }
-      }
-
-      .dd-wrapper {
-        position: relative;
-      }
-      .dd {
-        position: relative;
-        width: 100%;
-      }
-
-      .dd-btn {
-        width: 100%;
-        height: 46px;
-        padding: 0 14px;
-        border: 1.5px solid var(--line);
-        border-radius: 9px;
-        background: #fff;
-        color: var(--ink-soft);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        cursor: pointer;
-        font-size: 0.95rem;
-        font-weight: 500;
-        transition:
-          border-color 0.2s ease,
-          box-shadow 0.2s ease,
-          transform 0.15s ease;
-      }
-
-      .dd-btn .dd-selected.has-value {
-        color: var(--ink);
-        font-weight: 600;
-      }
-
-      .dd-btn:hover,
-      .dd.open .dd-btn {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 4px var(--accent-glow);
-      }
-
-      .dd-btn:active {
-        transform: scale(0.99);
-      }
-
-      .dd-arrow {
-        color: var(--accent);
-        font-size: 20px;
-        font-weight: bold;
-        line-height: 1;
-        transition: transform 0.28s var(--ease-spring);
-      }
-
-      .dd.open .dd-arrow {
-        transform: rotate(180deg);
-      }
-
-      .dd-menu {
-        position: absolute;
-        z-index: 500;
-        top: calc(100% + 8px);
-        left: 0;
-        width: 100%;
-        padding: 10px;
-        background: #fff;
-        border: 1px solid var(--accent);
-        border-radius: 12px;
-        box-shadow:
-          0 16px 34px rgba(16, 24, 40, 0.16),
-          0 4px 10px rgba(15, 118, 110, 0.16);
+    @keyframes rippleAnim {
+      to {
+        transform: scale(3.2);
         opacity: 0;
-        visibility: hidden;
-        transform-origin: top center;
-        transform: translateY(-8px) scale(0.97);
-        transition:
-          opacity 0.2s ease,
-          transform 0.22s var(--ease-spring),
-          visibility 0.2s;
       }
+    }
 
-      .dd.open .dd-menu {
+    .burst-particle {
+      position: fixed;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      animation: burstFly 0.7s ease-out forwards;
+    }
+
+    @keyframes burstFly {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
         opacity: 1;
-        visibility: visible;
-        transform: translateY(0) scale(1);
       }
 
-      .dd-search-box {
-        margin-bottom: 8px;
+      100% {
+        transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .btn-pop {
+      animation: popIn 0.4s var(--ease-spring);
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.85);
       }
 
-      .dd-search-box input {
-        width: 100%;
-        height: 40px;
-        padding: 0 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        outline: none;
-        font-size: 14px;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
+      55% {
+        transform: scale(1.08);
       }
 
-      .dd-search-box input:focus {
-        border-color: var(--accent);
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    #defectCards .defect-card {
+      background: #fff;
+      border: 1.5px solid var(--line);
+      border-left: 5px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      height: 100%;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
+      animation: cardIn 0.4s var(--ease-spring) both;
+    }
+
+    .defect-card:hover {
+      box-shadow: 0 10px 26px rgba(16, 24, 40, 0.1);
+      transform: translateY(-3px);
+    }
+
+    .defect-card.state-active {
+      border-left-color: var(--accent);
+      box-shadow:
+        0 0 0 1px rgba(15, 118, 110, 0.14),
+        0 8px 20px rgba(15, 118, 110, 0.12);
+    }
+
+    .defect-card.state-ok {
+      border-left-color: var(--ok);
+      box-shadow:
+        0 0 0 1px rgba(22, 163, 74, 0.12),
+        0 8px 20px rgba(22, 163, 74, 0.1);
+    }
+
+    .defect-card.state-bad {
+      border-left-color: var(--bad);
+      box-shadow:
+        0 0 0 1px rgba(220, 38, 38, 0.12),
+        0 8px 20px rgba(220, 38, 38, 0.1);
+    }
+
+    .defect-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .defect-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #fff;
+      background: var(--ink);
+      padding: 3px 9px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      transition:
+        background 0.2s ease,
+        transform 0.2s var(--ease-spring);
+    }
+
+    .defect-card:hover .defect-tag {
+      transform: scale(1.05);
+    }
+
+    .state-active .defect-tag {
+      background: var(--accent-dark);
+    }
+
+    .state-ok .defect-tag {
+      background: var(--ok);
+    }
+
+    .state-bad .defect-tag {
+      background: var(--bad);
+    }
+
+    .defect-status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--line);
+      transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .defect-card.state-active .defect-status-dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+
+    .defect-card.state-ok .defect-status-dot {
+      background: var(--ok);
+    }
+
+    .defect-card.state-bad .defect-status-dot {
+      background: var(--bad);
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      100% {
         box-shadow: 0 0 0 3px var(--accent-glow);
       }
 
-      .dd-options {
-        max-height: 220px;
-        overflow-y: auto;
+      50% {
+        box-shadow: 0 0 0 6px transparent;
+      }
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field-row .form-control,
+    .field-row .form-select {
+      margin-bottom: 10px;
+    }
+
+    #defectCards textarea.form-control {
+      min-height: 64px;
+      resize: vertical;
+      font-size: 0.88rem;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
       }
 
-      .dd-option {
-        padding: 11px 14px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--ink);
-        transition:
-          background 0.15s ease,
-          color 0.15s ease,
-          padding-left 0.15s ease;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg,
+          #eceef2 25%,
+          #dfe2e8 50%,
+          #eceef2 75%);
+      background-size: 200% 100%;
+      animation: skeletonLoad 1.4s infinite;
+      border-radius: 8px;
+      height: 44px;
+    }
+
+    .skeleton-card {
+      height: 320px;
+      border-radius: 12px;
+    }
+
+    @keyframes skeletonLoad {
+      0% {
+        background-position: 200% 0;
       }
 
-      .dd-option:hover,
-      .dd-option.highlighted {
-        background: linear-gradient(135deg, #ecfdf9, #ccfbf1);
-        color: var(--accent-dark);
-        padding-left: 20px;
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(242, 244, 247, 0.97);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      gap: 18px;
+      transition: opacity 0.25s ease;
+    }
+
+    .loading-overlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-mark {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 4px solid #dfe3e8;
+      border-top-color: var(--accent);
+      border-right-color: var(--gold);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    .sync-pill {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      padding: 8px 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      transform: translateY(10px);
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    .sync-pill.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .sync-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
       }
 
-      .dd-option.empty {
-        color: var(--ink-soft);
-        font-weight: 500;
-        font-style: italic;
-        text-align: center;
-        padding: 16px;
-        cursor: default;
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    .remark-box textarea#remark {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      resize: vertical;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
       }
 
-      .dd-option.empty:hover {
-        background: none;
-        padding-left: 14px;
+      to {
+        opacity: 1;
+      }
+    }
+
+    .load-more-wrap {
+      display: flex;
+      justify-content: end;
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding: 16px 22px;
+      background: linear-gradient(135deg, #fdf9ec, #fbf3d9);
+      border: 1.5px solid var(--gold-glow);
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(201, 162, 39, 0.1);
+      transition:
+        background 0.25s ease,
+        border-color 0.25s ease;
+      animation: fadeIn 0.4s ease both;
+    }
+
+    .summary-stats {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+
+    .summary-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 56px;
+    }
+
+    .summary-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    .summary-value {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+      transition: color 0.2s ease;
+    }
+
+    .summary-value.summary-ok {
+      color: var(--ok);
+    }
+
+    .summary-value.summary-bad {
+      color: var(--bad);
+    }
+
+    .summary-msg {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 20px;
+      background: rgba(201, 162, 39, 0.16);
+      color: var(--gold-dark);
+      font-size: 0.86rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition:
+        background 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .summary-msg i {
+      font-size: 0.9rem;
+    }
+
+    .summary-msg.state-ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+    }
+
+    .summary-msg.state-bad {
+      background: var(--bad-bg);
+      color: var(--bad);
+    }
+
+    @media (max-width: 700px) {
+      .summary-bar {
+        flex-direction: column;
+        align-items: flex-start;
       }
 
-      .dd-options::-webkit-scrollbar {
-        width: 6px;
+      .summary-stats {
+        gap: 24px;
       }
-      .dd-options::-webkit-scrollbar-thumb {
-        background: var(--accent);
-        border-radius: 10px;
-      }
-      .dd-options::-webkit-scrollbar-track {
-        background: #ecfdf9;
-      }
-    </style>
-  </head>
 
-  <body>
-    <div class="loading-overlay" id="loadingOverlay">
-      <div class="loader-mark"></div>
-      <div class="loading-text" id="loadingText">Loading job card data…</div>
+      .summary-msg {
+        white-space: normal;
+      }
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid var(--accent-glow);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .form-body {
+        padding: 22px 16px 0;
+      }
+
+      .header h2 {
+        font-size: 1.9rem;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    .dd-wrapper {
+      position: relative;
+    }
+
+    .dd {
+      position: relative;
+      width: 100%;
+    }
+
+    .dd-btn {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+    }
+
+    .dd-btn .dd-selected.has-value {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .dd-btn:hover,
+    .dd.open .dd-btn {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+
+    .dd-btn:active {
+      transform: scale(0.99);
+    }
+
+    .dd-arrow {
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1;
+      transition: transform 0.28s var(--ease-spring);
+    }
+
+    .dd.open .dd-arrow {
+      transform: rotate(180deg);
+    }
+
+    .dd-menu {
+      position: absolute;
+      z-index: 500;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 100%;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      box-shadow:
+        0 16px 34px rgba(16, 24, 40, 0.16),
+        0 4px 10px rgba(15, 118, 110, 0.16);
+      opacity: 0;
+      visibility: hidden;
+      transform-origin: top center;
+      transform: translateY(-8px) scale(0.97);
+      transition:
+        opacity 0.2s ease,
+        transform 0.22s var(--ease-spring),
+        visibility 0.2s;
+    }
+
+    .dd.open .dd-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    .dd-search-box {
+      margin-bottom: 8px;
+    }
+
+    .dd-search-box input {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .dd-search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .dd-options {
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .dd-option {
+      padding: 11px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        padding-left 0.15s ease;
+    }
+
+    .dd-option:hover,
+    .dd-option.highlighted {
+      background: linear-gradient(135deg, #ecfdf9, #ccfbf1);
+      color: var(--accent-dark);
+      padding-left: 20px;
+    }
+
+    .dd-option.empty {
+      color: var(--ink-soft);
+      font-weight: 500;
+      font-style: italic;
+      text-align: center;
+      padding: 16px;
+      cursor: default;
+    }
+
+    .dd-option.empty:hover {
+      background: none;
+      padding-left: 14px;
+    }
+
+    .dd-options::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .dd-options::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+
+    .dd-options::-webkit-scrollbar-track {
+      background: #ecfdf9;
+    }
+
+    .defect-clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: #dc3545;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 10;
+      padding: 2px 5px;
+    }
+
+    .defect-clear-btn:hover {
+      color: #a00;
+    }
+
+    .clearar{
+      padding: 0px 22px 0px 0px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loader-mark"></div>
+    <div class="loading-text" id="loadingText">Loading job card data…</div>
+  </div>
+
+  <div class="sync-pill" id="syncPill">
+    <span class="dot"></span>
+    <span id="syncPillText">Refreshing data…</span>
+  </div>
+
+  <div class="container" id="mainContainer" style="display: none">
+    <div class="hazard-strip"></div>
+
+    <div class="header">
+      <div class="eyebrow">Quality Control · Rework Management</div>
+      <h2><i class="fas fa-tools"></i> Rework Entry</h2>
+      <p class="subtitle">
+        Log defect inspection and rework outcomes against a hold card
+      </p>
     </div>
 
-    <div class="sync-pill" id="syncPill">
-      <span class="dot"></span>
-      <span id="syncPillText">Refreshing data…</span>
-    </div>
+    <div class="form-body">
+      <form id="reworkForm" novalidate>
+        <h4 class="section-title">
+          <i class="fas fa-id-card"></i> Hold Card Details
+        </h4>
+        <div class="form-grid" id="basicDetails">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
 
-    <div class="container" id="mainContainer" style="display: none">
-      <div class="hazard-strip"></div>
-
-      <div class="header">
-        <div class="eyebrow">Quality Control · Rework Management</div>
-        <h2><i class="fas fa-tools"></i> Rework Entry</h2>
-        <p class="subtitle">
-          Log defect inspection and rework outcomes against a hold card
-        </p>
-      </div>
-
-      <div class="form-body">
-        <form id="reworkForm" novalidate>
-          <h4 class="section-title">
-            <i class="fas fa-id-card"></i> Hold Card Details
-          </h4>
-          <div class="form-grid" id="basicDetails">
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-          </div>
-
-          <div class="summary-bar" id="summaryBar">
-            <div class="summary-stats">
-              <div class="summary-stat">
-                <span class="summary-label">Rework Qty</span>
-                <span class="summary-value" id="summaryReworkQty">—</span>
-              </div>
-              <div class="summary-stat">
-                <span class="summary-label">OK</span>
-                <span class="summary-value summary-ok" id="summaryOk">0</span>
-              </div>
-              <div class="summary-stat">
-                <span class="summary-label">Not OK</span>
-                <span class="summary-value summary-bad" id="summaryNotOk"
-                  >0</span
-                >
-              </div>
-              <div class="summary-stat">
-                <span class="summary-label">Total</span>
-                <span class="summary-value" id="summaryTotal">0</span>
-              </div>
+        <div class="summary-bar" id="summaryBar">
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <span class="summary-label">Rework Qty</span>
+              <span class="summary-value" id="summaryReworkQty">—</span>
             </div>
-            <div class="summary-msg" id="summaryMsg">
-              <i class="fas fa-circle-info"></i>
-              <span id="summaryMsgText"
-                >Select a Hold No to see the target qty</span
-              >
+            <div class="summary-stat">
+              <span class="summary-label">OK</span>
+              <span class="summary-value summary-ok" id="summaryOk">0</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-label">Not OK</span>
+              <span class="summary-value summary-bad" id="summaryNotOk">0</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-label">Total</span>
+              <span class="summary-value" id="summaryTotal">0</span>
             </div>
           </div>
-
-          <h4 class="section-title">
-            <i class="fas fa-bug"></i> Defect Details
-          </h4>
-          <div id="defectCards" class="row g-3">
-            <div class="col-md-4">
-              <div class="skeleton skeleton-card"></div>
-            </div>
-            <div class="col-md-4">
-              <div class="skeleton skeleton-card"></div>
-            </div>
-            <div class="col-md-4">
-              <div class="skeleton skeleton-card"></div>
-            </div>
+          <div class="summary-msg" id="summaryMsg">
+            <i class="fas fa-circle-info"></i>
+            <span id="summaryMsgText">Select a Hold No to see the target qty</span>
           </div>
+        </div>
 
-          <div class="load-more-wrap">
-            <button type="button" id="loadMoreBtn" class="btn btn-accent">
-              <i class="fas fa-plus"></i> Load More Defects
-            </button>
+        <h4 class="section-title">
+          <i class="fas fa-bug"></i> Defect Details
+        </h4>
+        <div id="defectCards" class="row g-3">
+          <div class="col-md-4">
+            <div class="skeleton skeleton-card"></div>
           </div>
+          <div class="col-md-4">
+            <div class="skeleton skeleton-card"></div>
+          </div>
+          <div class="col-md-4">
+            <div class="skeleton skeleton-card"></div>
+          </div>
+        </div>
 
-          <button type="submit" class="btn btn-primary w-100 mt-4">
-            <i class="fas fa-paper-plane"></i> Submit Rework Data
+        <div class="load-more-wrap">
+          <button type="button" id="loadMoreBtn" class="btn btn-accent">
+            <i class="fas fa-plus"></i> Load More Defects
           </button>
-        </form>
-      </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-4">
+          <i class="fas fa-paper-plane"></i> Submit Rework Data
+        </button>
+      </form>
     </div>
+  </div>
 
-    <script>
-      console.log(
-        "%c Rework Entry — modernized build v4 (fixed validation scope) ",
-        "background:#101828;color:#fff;padding:5px 10px;border-radius:5px;font-weight:bold;",
+  <script>
+    console.log(
+      "%c Rework Entry — modernized build v4 (fixed validation scope) ",
+      "background:#101828;color:#fff;padding:5px 10px;border-radius:5px;font-weight:bold;",
+    );
+
+    // ── API endpoints ──────────────────────────────────────────────────────
+    const REWORK_API =
+      "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=rework";
+    const DEFECT_ITEMS_API =
+      "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=getDefectItems";
+    const DEFECT_SOLUTION_API =
+      "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=defect";
+    const SUBMIT_API =
+      "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec";
+
+    const CACHE_KEY = "reworkForm.cache.v1";
+    const CACHE_TTL_MS = 5 * 60 * 1000;
+    const FETCH_TIMEOUT_MS = 12000;
+
+    // ── State ──────────────────────────────────────────────────────────────
+    const TOTAL_CARDS = 6;
+    const CARDS_STEP = 3;
+    let visibleCards = CARDS_STEP;
+
+    let reworkData = [];
+    let defectsData = [];
+    let defectSolutionData = [];
+    let hasBootedOnce = false;
+
+    // ── Small helpers ────────────────────────────────────────────────────
+    function withTimeout(promise, ms) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), ms);
+      return {
+        controller,
+        promise: promise(controller.signal).finally(() =>
+          clearTimeout(timer),
+        ),
+      };
+    }
+
+    function fetchJSON(url) {
+      const { promise } = withTimeout(
+        (signal) => fetch(url, { signal }).then((res) => res.json()),
+        FETCH_TIMEOUT_MS,
       );
+      return promise;
+    }
 
-      // ── API endpoints ──────────────────────────────────────────────────────
-      const REWORK_API =
-        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=rework";
-      const DEFECT_ITEMS_API =
-        "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=getDefectItems";
-      const DEFECT_SOLUTION_API =
-        "https://script.google.com/macros/s/AKfycbys6UkPESoR9e1Oe2hdTvlJkImMNZfszqxOdn_SSLs1b_ecvOvtVsm_7Y9q4H7-sWyR/exec?action=defect";
-      const SUBMIT_API =
-        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec";
+    function escapeHtml(str) {
+      return String(str ?? "").replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c],
+      );
+    }
 
-      const CACHE_KEY = "reworkForm.cache.v1";
-      const CACHE_TTL_MS = 5 * 60 * 1000;
-      const FETCH_TIMEOUT_MS = 12000;
+    function showToast(message, type = "success") {
+      const palettes = {
+        success: "linear-gradient(to right, #16a34a, #22c55e)",
+        error: "linear-gradient(to right, #dc2626, #ef4444)",
+        warn: "linear-gradient(to right, #c9a227, #a9820f)",
+        info: "linear-gradient(135deg, #101828, #22344f)",
+      };
+      Toastify({
+        text: message,
+        duration: type === "info" ? 6000 : 3500,
+        gravity: "top",
+        position: "right",
+        close: true,
+        stopOnFocus: true,
+        style: { background: palettes[type] || palettes.success },
+      }).showToast();
+    }
 
-      // ── State ──────────────────────────────────────────────────────────────
-      const TOTAL_CARDS = 6;
-      const CARDS_STEP = 3;
-      let visibleCards = CARDS_STEP;
+    function setLoadingText(text) {
+      const el = document.getElementById("loadingText");
+      if (el) el.textContent = text;
+    }
 
-      let reworkData = [];
-      let defectsData = [];
-      let defectSolutionData = [];
-      let hasBootedOnce = false;
+    function showSyncPill(text) {
+      const pill = document.getElementById("syncPill");
+      document.getElementById("syncPillText").textContent = text;
+      pill.classList.add("show");
+    }
 
-      // ── Small helpers ────────────────────────────────────────────────────
-      function withTimeout(promise, ms) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), ms);
-        return {
-          controller,
-          promise: promise(controller.signal).finally(() =>
-            clearTimeout(timer),
-          ),
-        };
+    function hideSyncPill(delay = 900) {
+      setTimeout(
+        () => document.getElementById("syncPill").classList.remove("show"),
+        delay,
+      );
+    }
+
+    function readCache() {
+      try {
+        const raw = sessionStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.ts) return null;
+        return parsed;
+      } catch {
+        return null;
       }
+    }
 
-      function fetchJSON(url) {
-        const { promise } = withTimeout(
-          (signal) => fetch(url, { signal }).then((res) => res.json()),
-          FETCH_TIMEOUT_MS,
+    function writeCache(payload) {
+      try {
+        sessionStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ ts: Date.now(), ...payload }),
         );
-        return promise;
+      } catch {
+        /* storage unavailable — non-fatal */
       }
+    }
 
-      function escapeHtml(str) {
-        return String(str ?? "").replace(
-          /[&<>"']/g,
-          (c) =>
-            ({
-              "&": "&amp;",
-              "<": "&lt;",
-              ">": "&gt;",
-              '"': "&quot;",
-              "'": "&#39;",
-            })[c],
-        );
+    function normalizeList(raw) {
+      if (Array.isArray(raw)) return raw;
+      if (raw && typeof raw === "object") {
+        if (Array.isArray(raw.data)) return raw.data;
+        if (raw.error) return [];
+        return Object.values(raw);
       }
+      return [];
+    }
 
-      function showToast(message, type = "success") {
-        const palettes = {
-          success: "linear-gradient(to right, #16a34a, #22c55e)",
-          error: "linear-gradient(to right, #dc2626, #ef4444)",
-          warn: "linear-gradient(to right, #c9a227, #a9820f)",
-          info: "linear-gradient(135deg, #101828, #22344f)",
-        };
-        Toastify({
-          text: message,
-          duration: type === "info" ? 6000 : 3500,
-          gravity: "top",
-          position: "right",
-          close: true,
-          stopOnFocus: true,
-          style: { background: palettes[type] || palettes.success },
-        }).showToast();
+    function getUniqueDefectNames() {
+      const list = normalizeList(defectSolutionData).filter(
+        (d) => d && d.defect,
+      );
+      return [...new Set(list.map((d) => String(d.defect).trim()))];
+    }
+
+    // ── Click ripple + success burst — shared UI juice ──────────────────
+    function attachRipple(button) {
+      button.addEventListener("click", function (e) {
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) * 1.4;
+        const ripple = document.createElement("span");
+        ripple.className = "ripple";
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+        ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 650);
+      });
+    }
+
+    function burstFromElement(
+      el,
+      colors = ["var(--accent)", "var(--gold)", "var(--ink)"],
+    ) {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const count = 16;
+
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement("span");
+        particle.className = "burst-particle";
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.25;
+        const dist = 55 + Math.random() * 45;
+        particle.style.setProperty("--tx", `${Math.cos(angle) * dist}px`);
+        particle.style.setProperty("--ty", `${Math.sin(angle) * dist}px`);
+        particle.style.left = `${cx}px`;
+        particle.style.top = `${cy}px`;
+        particle.style.background = colors[i % colors.length];
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 750);
       }
+    }
 
-      function setLoadingText(text) {
-        const el = document.getElementById("loadingText");
-        if (el) el.textContent = text;
-      }
+    document
+      .querySelectorAll(".btn-primary, .btn-accent")
+      .forEach(attachRipple);
 
-      function showSyncPill(text) {
-        const pill = document.getElementById("syncPill");
-        document.getElementById("syncPillText").textContent = text;
-        pill.classList.add("show");
-      }
+    // ═══════════════════════════════════════════════════════════════════
+    // Shared searchable-dropdown component — one implementation backs
+    // both the Hold No field and every Defect card's picker.
+    // ═══════════════════════════════════════════════════════════════════
 
-      function hideSyncPill(delay = 900) {
-        setTimeout(
-          () => document.getElementById("syncPill").classList.remove("show"),
-          delay,
-        );
-      }
+    function dropdownMarkup({ id, options, placeholder, name }) {
+      const optionsHtml = options.length
+        ? options
+          .map(
+            (opt) =>
+              `<div class="dd-option" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</div>`,
+          )
+          .join("")
+        : `<div class="dd-option empty">No options available</div>`;
 
-      function readCache() {
-        try {
-          const raw = sessionStorage.getItem(CACHE_KEY);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          if (!parsed || !parsed.ts) return null;
-          return parsed;
-        } catch {
-          return null;
-        }
-      }
-
-      function writeCache(payload) {
-        try {
-          sessionStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ ts: Date.now(), ...payload }),
-          );
-        } catch {
-          /* storage unavailable — non-fatal */
-        }
-      }
-
-      function normalizeList(raw) {
-        if (Array.isArray(raw)) return raw;
-        if (raw && typeof raw === "object") {
-          if (Array.isArray(raw.data)) return raw.data;
-          if (raw.error) return [];
-          return Object.values(raw);
-        }
-        return [];
-      }
-
-      function getUniqueDefectNames() {
-        const list = normalizeList(defectSolutionData).filter(
-          (d) => d && d.defect,
-        );
-        return [...new Set(list.map((d) => String(d.defect).trim()))];
-      }
-
-      // ── Click ripple + success burst — shared UI juice ──────────────────
-      function attachRipple(button) {
-        button.addEventListener("click", function (e) {
-          const rect = this.getBoundingClientRect();
-          const size = Math.max(rect.width, rect.height) * 1.4;
-          const ripple = document.createElement("span");
-          ripple.className = "ripple";
-          ripple.style.width = ripple.style.height = `${size}px`;
-          ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-          ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-          this.appendChild(ripple);
-          setTimeout(() => ripple.remove(), 650);
-        });
-      }
-
-      function burstFromElement(
-        el,
-        colors = ["var(--accent)", "var(--gold)", "var(--ink)"],
-      ) {
-        const rect = el.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const count = 16;
-
-        for (let i = 0; i < count; i++) {
-          const particle = document.createElement("span");
-          particle.className = "burst-particle";
-          const angle = (Math.PI * 2 * i) / count + Math.random() * 0.25;
-          const dist = 55 + Math.random() * 45;
-          particle.style.setProperty("--tx", `${Math.cos(angle) * dist}px`);
-          particle.style.setProperty("--ty", `${Math.sin(angle) * dist}px`);
-          particle.style.left = `${cx}px`;
-          particle.style.top = `${cy}px`;
-          particle.style.background = colors[i % colors.length];
-          document.body.appendChild(particle);
-          setTimeout(() => particle.remove(), 750);
-        }
-      }
-
-      document
-        .querySelectorAll(".btn-primary, .btn-accent")
-        .forEach(attachRipple);
-
-      // ═══════════════════════════════════════════════════════════════════
-      // Shared searchable-dropdown component — one implementation backs
-      // both the Hold No field and every Defect card's picker.
-      // ═══════════════════════════════════════════════════════════════════
-
-      function dropdownMarkup({ id, options, placeholder, name }) {
-        const optionsHtml = options.length
-          ? options
-              .map(
-                (opt) =>
-                  `<div class="dd-option" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</div>`,
-              )
-              .join("")
-          : `<div class="dd-option empty">No options available</div>`;
-
-        return `
+      return `
               <div class="dd-wrapper" data-dd="${id}">
                 <div class="dd" id="dd_${id}">
                   <button type="button" class="dd-btn" aria-haspopup="listbox">
@@ -1376,97 +1400,97 @@
                   <input type="hidden" name="${name}" id="${name}">
                 </div>
               </div>`;
-      }
+    }
 
-      function initDropdown(id, { onSelect } = {}) {
-        const dd = document.getElementById(`dd_${id}`);
-        if (!dd) return;
-        const btn = dd.querySelector(".dd-btn");
-        const selectedSpan = document.getElementById(`ddSelected_${id}`);
-        const hiddenInput = dd.querySelector('input[type="hidden"]');
-        const searchInput = document.getElementById(`ddSearch_${id}`);
-        const optionsContainer = document.getElementById(`ddOptions_${id}`);
+    function initDropdown(id, { onSelect } = {}) {
+      const dd = document.getElementById(`dd_${id}`);
+      if (!dd) return;
+      const btn = dd.querySelector(".dd-btn");
+      const selectedSpan = document.getElementById(`ddSelected_${id}`);
+      const hiddenInput = dd.querySelector('input[type="hidden"]');
+      const searchInput = document.getElementById(`ddSearch_${id}`);
+      const optionsContainer = document.getElementById(`ddOptions_${id}`);
 
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          document.querySelectorAll(".dd.open").forEach((other) => {
-            if (other !== dd) other.classList.remove("open");
-          });
-          dd.classList.toggle("open");
-          if (dd.classList.contains("open")) {
-            setTimeout(() => searchInput && searchInput.focus(), 90);
-          }
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dd.open").forEach((other) => {
+          if (other !== dd) other.classList.remove("open");
         });
-
-        if (searchInput) {
-          searchInput.addEventListener("input", function () {
-            const v = this.value.toLowerCase().trim();
-            optionsContainer
-              .querySelectorAll(".dd-option:not(.empty)")
-              .forEach((opt) => {
-                opt.style.display = opt.textContent.toLowerCase().includes(v)
-                  ? "block"
-                  : "none";
-              });
-          });
+        dd.classList.toggle("open");
+        if (dd.classList.contains("open")) {
+          setTimeout(() => searchInput && searchInput.focus(), 90);
         }
+      });
 
-        optionsContainer.addEventListener("click", (e) => {
-          const opt = e.target.closest(".dd-option:not(.empty)");
-          if (!opt) return;
-
-          const value = opt.dataset.value;
-          selectedSpan.textContent = value;
-          selectedSpan.classList.add("has-value");
-          hiddenInput.value = value;
-          dd.classList.remove("open");
-
-          if (searchInput) searchInput.value = "";
+      if (searchInput) {
+        searchInput.addEventListener("input", function () {
+          const v = this.value.toLowerCase().trim();
           optionsContainer
-            .querySelectorAll(".dd-option")
-            .forEach((o) => (o.style.display = "block"));
-
-          if (onSelect) onSelect(value);
+            .querySelectorAll(".dd-option:not(.empty)")
+            .forEach((opt) => {
+              opt.style.display = opt.textContent.toLowerCase().includes(v)
+                ? "block"
+                : "none";
+            });
         });
       }
 
-      function resetDropdown(id, placeholder) {
-        const dd = document.getElementById(`dd_${id}`);
-        if (!dd) return;
-        const selectedSpan = document.getElementById(`ddSelected_${id}`);
-        const hiddenInput = dd.querySelector('input[type="hidden"]');
-        selectedSpan.textContent = placeholder;
-        selectedSpan.classList.remove("has-value");
-        hiddenInput.value = "";
+      optionsContainer.addEventListener("click", (e) => {
+        const opt = e.target.closest(".dd-option:not(.empty)");
+        if (!opt) return;
+
+        const value = opt.dataset.value;
+        selectedSpan.textContent = value;
+        selectedSpan.classList.add("has-value");
+        hiddenInput.value = value;
+        dd.classList.remove("open");
+
+        if (searchInput) searchInput.value = "";
+        optionsContainer
+          .querySelectorAll(".dd-option")
+          .forEach((o) => (o.style.display = "block"));
+
+        if (onSelect) onSelect(value);
+      });
+    }
+
+    function resetDropdown(id, placeholder) {
+      const dd = document.getElementById(`dd_${id}`);
+      if (!dd) return;
+      const selectedSpan = document.getElementById(`ddSelected_${id}`);
+      const hiddenInput = dd.querySelector('input[type="hidden"]');
+      selectedSpan.textContent = placeholder;
+      selectedSpan.classList.remove("has-value");
+      hiddenInput.value = "";
+    }
+
+    // Single delegated listener for closing dropdowns — attached once,
+    // never re-added on re-render, so it can't leak across data refreshes.
+    document.addEventListener("click", (e) => {
+      document.querySelectorAll(".dd.open").forEach((dd) => {
+        if (!dd.contains(e.target)) dd.classList.remove("open");
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document
+          .querySelectorAll(".dd.open")
+          .forEach((dd) => dd.classList.remove("open"));
       }
+    });
 
-      // Single delegated listener for closing dropdowns — attached once,
-      // never re-added on re-render, so it can't leak across data refreshes.
-      document.addEventListener("click", (e) => {
-        document.querySelectorAll(".dd.open").forEach((dd) => {
-          if (!dd.contains(e.target)) dd.classList.remove("open");
-        });
-      });
+    // ── Render defect cards ──────────────────────────────────────────────
+    function renderCards() {
+      const container = document.getElementById("defectCards");
+      const defectOptions = getUniqueDefectNames();
+      let html = "";
 
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          document
-            .querySelectorAll(".dd.open")
-            .forEach((dd) => dd.classList.remove("open"));
-        }
-      });
+      for (let i = 1; i <= TOTAL_CARDS; i++) {
+        const hidden = i > visibleCards ? "d-none" : "";
+        const delay = ((i - 1) % CARDS_STEP) * 0.07;
 
-      // ── Render defect cards ──────────────────────────────────────────────
-      function renderCards() {
-        const container = document.getElementById("defectCards");
-        const defectOptions = getUniqueDefectNames();
-        let html = "";
-
-        for (let i = 1; i <= TOTAL_CARDS; i++) {
-          const hidden = i > visibleCards ? "d-none" : "";
-          const delay = ((i - 1) % CARDS_STEP) * 0.07;
-
-          html += `
+        html += `
         <div class="col-md-4 ${hidden}" id="card_${i}">
           <div class="defect-card" id="cardBody_${i}" style="animation-delay:${delay}s">
             <div class="defect-card-head">
@@ -1474,13 +1498,22 @@
               <span class="defect-status-dot" id="dot_${i}"></span>
             </div>
 
-            <div class="mb-2">
+           <div class="mb-2 position-relative">
               ${dropdownMarkup({
-                id: `defect_${i}`,
-                options: defectOptions,
-                placeholder: "Select Defect",
-                name: `defect_${i}`,
-              })}
+          id: `defect_${i}`,
+          options: defectOptions,
+          placeholder: "Select Defect",
+          name: `defect_${i}`,
+        })}
+
+              <button
+                type="button"
+                class="defect-clear-btn clearar"
+                onclick="clearDefect(${i})"
+                title="Clear Defect"
+              >
+                ✕
+              </button>
             </div>
 
             <div class="field-row">
@@ -1497,11 +1530,11 @@
               <input type="number" name="not_ok_${i}" class="form-control defect-field bad-input" data-card="${i}" placeholder="Not OK Qty" inputmode="numeric">
             </div>
 
-            <input type="text" name="rework_obs_${i}" class="form-control mb-2 defect-field" data-card="${i}" placeholder="Rework Observation">
+            <input type="text" name="rework_obs_${i}" class="form-control mb-2 defect-field" data-card="${i}" placeholder="Rework Method">
 
             <div class="field-row">
-              <input type="text" name="check_by_${i}" class="form-control defect-field" data-card="${i}" placeholder="Check By">
               <input type="text" name="rework_by_${i}" class="form-control defect-field" data-card="${i}" placeholder="Rework By">
+              <input type="text" name="check_by_${i}" class="form-control defect-field" data-card="${i}" placeholder="Check By">
             </div>
 
             <div class="field-row">
@@ -1510,166 +1543,174 @@
             </div>
           </div>
         </div>`;
-        }
-
-        container.innerHTML = html;
-
-        for (let i = 1; i <= TOTAL_CARDS; i++) {
-          initDropdown(`defect_${i}`, {
-            onSelect: (value) => onDefectSelected(i, value),
-          });
-        }
-
-        attachDefectFieldEvents();
-        updateLoadMoreBtn();
-        updateSummaryBar();
       }
 
-      function getCurrentDateTimeLocal() {
-        const now = new Date();
-        const offset = now.getTimezoneOffset();
-        const localDate = new Date(now.getTime() - offset * 60000);
-        return localDate.toISOString().slice(0, 16);
-      }
+      container.innerHTML = html;
 
-      function onDefectSelected(row, selectedValue) {
-        const selected = selectedValue.trim().toLowerCase();
-        const solutionField = document.getElementById(`solution_${row}`);
-        const cardBody = document.getElementById(`cardBody_${row}`);
-        const fields = document.querySelectorAll(
-          `.defect-field[data-card="${row}"]`,
-        );
-
-        const matches = normalizeList(defectSolutionData).filter(
-          (d) => d && String(d.defect).trim().toLowerCase() === selected,
-        );
-
-        solutionField.value = matches.length
-          ? matches
-              .map((m, idx) => `${idx + 1}. ${m.solution ?? ""}`)
-              .join("\n")
-          : "";
-
-        const hasDefect = selectedValue !== "";
-        fields.forEach((field) => {
-          if (field.id === solutionField.id) return;
-          field.required = hasDefect;
-          if (!hasDefect) {
-            field.value = "";
-            field.classList.remove("field-invalid");
-          }
+      for (let i = 1; i <= TOTAL_CARDS; i++) {
+        initDropdown(`defect_${i}`, {
+          onSelect: (value) => onDefectSelected(i, value),
         });
-
-        cardBody.classList.toggle("state-active", hasDefect);
-        if (!hasDefect) cardBody.classList.remove("state-ok", "state-bad");
-
-        updateSummaryBar();
       }
 
-      // ── Live summary bar (Rework Qty vs OK / Not OK / Total) ─────────────
-      function updateSummaryBar() {
-        const reworkQtyEl = document.getElementById("summaryReworkQty");
-        const okEl = document.getElementById("summaryOk");
-        const notOkEl = document.getElementById("summaryNotOk");
-        const totalEl = document.getElementById("summaryTotal");
-        const msgBox = document.getElementById("summaryMsg");
-        const msgText = document.getElementById("summaryMsgText");
-        if (!reworkQtyEl || !msgBox) return;
+      attachDefectFieldEvents();
+      updateLoadMoreBtn();
+      updateSummaryBar();
+    }
 
-        const { totalOk, totalNotOk } = getFormTotals();
-        const total = totalOk + totalNotOk;
 
-        okEl.textContent = totalOk;
-        notOkEl.textContent = totalNotOk;
-        totalEl.textContent = total;
-        msgBox.classList.remove("state-ok", "state-bad");
+    function clearDefect(i) {
+      resetDropdown(`defect_${i}`, "Select Defect");
+      onDefectSelected(i, "");
+    }
 
-        const holdInput = document.getElementById("hold_no");
-        const holdSelected = !!holdInput && holdInput.value.trim() !== "";
 
-        if (!holdSelected) {
-          reworkQtyEl.textContent = "—";
-          msgText.textContent = "Select a Hold No to see the target qty";
-          return;
+
+    function getCurrentDateTimeLocal() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      const localDate = new Date(now.getTime() - offset * 60000);
+      return localDate.toISOString().slice(0, 16);
+    }
+
+    function onDefectSelected(row, selectedValue) {
+      const selected = selectedValue.trim().toLowerCase();
+      const solutionField = document.getElementById(`solution_${row}`);
+      const cardBody = document.getElementById(`cardBody_${row}`);
+      const fields = document.querySelectorAll(
+        `.defect-field[data-card="${row}"]`,
+      );
+
+      const matches = normalizeList(defectSolutionData).filter(
+        (d) => d && String(d.defect).trim().toLowerCase() === selected,
+      );
+
+      solutionField.value = matches.length
+        ? matches
+          .map((m, idx) => `${idx + 1}. ${m.solution ?? ""}`)
+          .join("\n")
+        : "";
+
+      const hasDefect = selectedValue !== "";
+      fields.forEach((field) => {
+        if (field.id === solutionField.id) return;
+        field.required = hasDefect;
+        if (!hasDefect) {
+          field.value = "";
+          field.classList.remove("field-invalid");
         }
+      });
 
-        const reworkQty = getReworkQty();
-        reworkQtyEl.textContent = reworkQty;
+      cardBody.classList.toggle("state-active", hasDefect);
+      if (!hasDefect) cardBody.classList.remove("state-ok", "state-bad");
 
-        if (reworkQty === 0) {
-          if (total === 0) {
-            msgBox.classList.add("state-ok");
-            msgText.textContent = "Rework Qty is 0 — ready to submit";
-          } else {
-            msgBox.classList.add("state-bad");
-            msgText.textContent = "Rework Qty is 0 — OK & Not OK must total 0";
-          }
-          return;
-        }
+      updateSummaryBar();
+    }
 
-        if (total === reworkQty) {
+    // ── Live summary bar (Rework Qty vs OK / Not OK / Total) ─────────────
+    function updateSummaryBar() {
+      const reworkQtyEl = document.getElementById("summaryReworkQty");
+      const okEl = document.getElementById("summaryOk");
+      const notOkEl = document.getElementById("summaryNotOk");
+      const totalEl = document.getElementById("summaryTotal");
+      const msgBox = document.getElementById("summaryMsg");
+      const msgText = document.getElementById("summaryMsgText");
+      if (!reworkQtyEl || !msgBox) return;
+
+      const { totalOk, totalNotOk } = getFormTotals();
+      const total = totalOk + totalNotOk;
+
+      okEl.textContent = totalOk;
+      notOkEl.textContent = totalNotOk;
+      totalEl.textContent = total;
+      msgBox.classList.remove("state-ok", "state-bad");
+
+      const holdInput = document.getElementById("hold_no");
+      const holdSelected = !!holdInput && holdInput.value.trim() !== "";
+
+      if (!holdSelected) {
+        reworkQtyEl.textContent = "—";
+        msgText.textContent = "Select a Hold No to see the target qty";
+        return;
+      }
+
+      const reworkQty = getReworkQty();
+      reworkQtyEl.textContent = reworkQty;
+
+      if (reworkQty === 0) {
+        if (total === 0) {
           msgBox.classList.add("state-ok");
-          msgText.textContent = "Qty fully accounted for";
-        } else if (total < reworkQty) {
-          msgText.textContent = `${reworkQty - total} qty remaining to account for`;
+          msgText.textContent = "Rework Qty is 0 — ready to submit";
         } else {
           msgBox.classList.add("state-bad");
-          msgText.textContent = `Total exceeds Rework Qty by ${total - reworkQty}`;
+          msgText.textContent = "Rework Qty is 0 — OK & Not OK must total 0";
         }
+        return;
       }
 
-      function updateLoadMoreBtn() {
-        const btn = document.getElementById("loadMoreBtn");
-        btn.style.display =
-          visibleCards >= TOTAL_CARDS ? "none" : "inline-flex";
+      if (total === reworkQty) {
+        msgBox.classList.add("state-ok");
+        msgText.textContent = "Qty fully accounted for";
+      } else if (total < reworkQty) {
+        msgText.textContent = `${reworkQty - total} qty remaining to account for`;
+      } else {
+        msgBox.classList.add("state-bad");
+        msgText.textContent = `Total exceeds Rework Qty by ${total - reworkQty}`;
       }
+    }
 
-      function attachDefectFieldEvents() {
-        document.querySelectorAll(".ok-input, .bad-input").forEach((input) => {
-          input.addEventListener("input", function () {
-            const cardNo = this.dataset.card;
-            const cardBody = document.getElementById(`cardBody_${cardNo}`);
-            const notOk = document.querySelector(
-              `.bad-input[data-card="${cardNo}"]`,
-            ).value;
-            const ok = document.querySelector(
-              `.ok-input[data-card="${cardNo}"]`,
-            ).value;
+    function updateLoadMoreBtn() {
+      const btn = document.getElementById("loadMoreBtn");
+      btn.style.display =
+        visibleCards >= TOTAL_CARDS ? "none" : "inline-flex";
+    }
 
-            cardBody.classList.remove("state-ok", "state-bad");
-            if (Number(notOk) > 0) cardBody.classList.add("state-bad");
-            else if (Number(ok) > 0) cardBody.classList.add("state-ok");
+    function attachDefectFieldEvents() {
+      document.querySelectorAll(".ok-input, .bad-input").forEach((input) => {
+        input.addEventListener("input", function () {
+          const cardNo = this.dataset.card;
+          const cardBody = document.getElementById(`cardBody_${cardNo}`);
+          const notOk = document.querySelector(
+            `.bad-input[data-card="${cardNo}"]`,
+          ).value;
+          const ok = document.querySelector(
+            `.ok-input[data-card="${cardNo}"]`,
+          ).value;
 
-            updateSummaryBar();
-          });
+          cardBody.classList.remove("state-ok", "state-bad");
+          if (Number(notOk) > 0) cardBody.classList.add("state-bad");
+          else if (Number(ok) > 0) cardBody.classList.add("state-ok");
+
+          updateSummaryBar();
         });
-      }
+      });
+    }
 
-      // ── Date formatting ──────────────────────────────────────────────────
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return "N/A";
+    // ── Date formatting ──────────────────────────────────────────────────
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "N/A";
 
-        const d = String(date.getDate()).padStart(2, "0");
-        const m = String(date.getMonth() + 1).padStart(2, "0");
-        const y = date.getFullYear();
+      const d = String(date.getDate()).padStart(2, "0");
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const y = date.getFullYear();
 
-        let h = date.getHours();
-        const ampm = h >= 12 ? "PM" : "AM";
-        h = h % 12 || 12;
+      let h = date.getHours();
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
 
-        const min = String(date.getMinutes()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
 
-        return `${d}/${m}/${y} ${String(h).padStart(2, "0")}:${min} ${ampm}`;
-      }
+      return `${d}/${m}/${y} ${String(h).padStart(2, "0")}:${min} ${ampm}`;
+    }
 
-      // ── Basic details section ────────────────────────────────────────────
-      function renderBasicDetails() {
-        const holdOptions = reworkData.map((item) =>
-          String(item["Hold Number"]),
-        );
+    // ── Basic details section ────────────────────────────────────────────
+    function renderBasicDetails() {
+      const holdOptions = reworkData.map((item) =>
+        String(item["Hold Number"]),
+      );
 
-        document.getElementById("basicDetails").innerHTML = `
+      document.getElementById("basicDetails").innerHTML = `
               <div>
                 <label class="form-label">Hold No</label>
                 ${dropdownMarkup({ id: "hold", options: holdOptions, placeholder: "Select Hold Card", name: "hold_no" })}
@@ -1716,370 +1757,370 @@
               </div>
             `;
 
-        initDropdown("hold", {
-          onSelect: (selectedValue) => {
-            const data = reworkData.find(
-              (d) =>
-                String(d["Hold Number"]).trim() ===
-                String(selectedValue).trim(),
-            );
-            if (!data) return;
+      initDropdown("hold", {
+        onSelect: (selectedValue) => {
+          const data = reworkData.find(
+            (d) =>
+              String(d["Hold Number"]).trim() ===
+              String(selectedValue).trim(),
+          );
+          if (!data) return;
 
-            document.querySelector("[name='process']").value =
-              data["Process Name"] || "N/A";
-            document.querySelector("[name='item_code']").value =
-              data["Part"] || "N/A";
-            document.querySelector("[name='jrc_total']").value =
-              data["JRC--Qty"] || "N/A";
-            document.querySelector("[name='rework_qty']").value =
-              data["Rej Qty"] || "N/A";
-            document.querySelector("[name='job_card_no']").value =
-              data["Job Card NO"] || "N/A";
-            document.querySelector("[name='Remark']").value =
-              data["Remark"] || "N/A";
-            document.querySelector("[name='Defect']").value =
-              data["Defect Item"] || "N/A";
-            document.querySelector("[name='Hold_Genereated']").value = data[
-              "HC_No-Generated At"
-            ]
-              ? formatDate(data["HC_No-Generated At"])
-              : "N/A";
+          document.querySelector("[name='process']").value =
+            data["Process Name"] || "N/A";
+          document.querySelector("[name='item_code']").value =
+            data["Part"] || "N/A";
+          document.querySelector("[name='jrc_total']").value =
+            data["JRC--Qty"] || "N/A";
+          document.querySelector("[name='rework_qty']").value =
+            data["Rej Qty"] || "N/A";
+          document.querySelector("[name='job_card_no']").value =
+            data["Job Card NO"] || "N/A";
+          document.querySelector("[name='Remark']").value =
+            data["Remark"] || "N/A";
+          document.querySelector("[name='Defect']").value =
+            data["Defect Item"] || "N/A";
+          document.querySelector("[name='Hold_Genereated']").value = data[
+            "HC_No-Generated At"
+          ]
+            ? formatDate(data["HC_No-Generated At"])
+            : "N/A";
 
-            updateSummaryBar();
-          },
-        });
-
-        updateSummaryBar();
-      }
-
-      // ── Load More ─────────────────────────────────────────────────────────
-      document.getElementById("loadMoreBtn").addEventListener("click", () => {
-        const prev = visibleCards;
-        visibleCards = Math.min(visibleCards + CARDS_STEP, TOTAL_CARDS);
-        for (let i = prev + 1; i <= visibleCards; i++) {
-          const card = document.getElementById(`card_${i}`);
-          if (card) card.classList.remove("d-none");
-        }
-        updateLoadMoreBtn();
+          updateSummaryBar();
+        },
       });
 
-      // ── Shared qty helpers (used by both summary bar and submit validation)
-      function getReworkQty() {
-        const raw = document.querySelector("[name='rework_qty']")?.value;
-        return Number(raw) || 0;
+      updateSummaryBar();
+    }
+
+    // ── Load More ─────────────────────────────────────────────────────────
+    document.getElementById("loadMoreBtn").addEventListener("click", () => {
+      const prev = visibleCards;
+      visibleCards = Math.min(visibleCards + CARDS_STEP, TOTAL_CARDS);
+      for (let i = prev + 1; i <= visibleCards; i++) {
+        const card = document.getElementById(`card_${i}`);
+        if (card) card.classList.remove("d-none");
+      }
+      updateLoadMoreBtn();
+    });
+
+    // ── Shared qty helpers (used by both summary bar and submit validation)
+    function getReworkQty() {
+      const raw = document.querySelector("[name='rework_qty']")?.value;
+      return Number(raw) || 0;
+    }
+
+    function getFormTotals() {
+      let totalOk = 0;
+      let totalNotOk = 0;
+      for (let i = 1; i <= TOTAL_CARDS; i++) {
+        totalOk +=
+          Number(
+            document.querySelector(`.ok-input[data-card="${i}"]`)?.value,
+          ) || 0;
+        totalNotOk +=
+          Number(
+            document.querySelector(`.bad-input[data-card="${i}"]`)?.value,
+          ) || 0;
+      }
+      return { totalOk, totalNotOk };
+    }
+
+    function getSelectedDefectRows() {
+      const rows = [];
+      for (let i = 1; i <= TOTAL_CARDS; i++) {
+        const inp = document.getElementById(`defect_${i}`);
+        if (inp && inp.value.trim() !== "") rows.push(i);
+      }
+      return rows;
+    }
+
+    // Runs every submit-time validation rule in order and returns the
+    // first failure message, or null if the form is valid. This keeps
+    // all the "who must equal what" business rules in one place instead
+    // of scattered across the submit handler.
+    function validateReworkForm() {
+      const holdInput = document.getElementById("hold_no");
+      if (!holdInput || !holdInput.value.trim()) {
+        document
+          .getElementById("dd_hold")
+          ?.querySelector(".dd-btn")
+          ?.classList.add("field-invalid");
+        return "Please select a Hold No";
       }
 
-      function getFormTotals() {
-        let totalOk = 0;
-        let totalNotOk = 0;
-        for (let i = 1; i <= TOTAL_CARDS; i++) {
-          totalOk +=
-            Number(
-              document.querySelector(`.ok-input[data-card="${i}"]`)?.value,
-            ) || 0;
-          totalNotOk +=
-            Number(
-              document.querySelector(`.bad-input[data-card="${i}"]`)?.value,
-            ) || 0;
-        }
-        return { totalOk, totalNotOk };
-      }
+      const reworkQty = getReworkQty();
+      const selectedRows = getSelectedDefectRows();
+      const { totalOk, totalNotOk } = getFormTotals();
+      const totalOkNotOk = totalOk + totalNotOk;
 
-      function getSelectedDefectRows() {
-        const rows = [];
-        for (let i = 1; i <= TOTAL_CARDS; i++) {
-          const inp = document.getElementById(`defect_${i}`);
-          if (inp && inp.value.trim() !== "") rows.push(i);
-        }
-        return rows;
-      }
-
-      // Runs every submit-time validation rule in order and returns the
-      // first failure message, or null if the form is valid. This keeps
-      // all the "who must equal what" business rules in one place instead
-      // of scattered across the submit handler.
-      function validateReworkForm() {
-        const holdInput = document.getElementById("hold_no");
-        if (!holdInput || !holdInput.value.trim()) {
-          document
-            .getElementById("dd_hold")
-            ?.querySelector(".dd-btn")
-            ?.classList.add("field-invalid");
-          return "Please select a Hold No";
-        }
-
-        const reworkQty = getReworkQty();
-        const selectedRows = getSelectedDefectRows();
-        const { totalOk, totalNotOk } = getFormTotals();
-        const totalOkNotOk = totalOk + totalNotOk;
-
-        if (reworkQty === 0) {
-          // Rework Qty = 0 → defect selection is NOT mandatory, but every
-          // OK + Not OK field across all cards must total 0.
-          if (totalOkNotOk !== 0) {
-            document.querySelectorAll(".ok-input, .bad-input").forEach((f) => {
-              if (Number(f.value) > 0) f.classList.add("field-invalid");
-            });
-            return "Rework Qty is 0 — OK and Not OK quantities must also be 0";
-          }
-          return null;
-        }
-
-        // Rework Qty != 0 → at least one defect must be selected.
-        if (selectedRows.length === 0) {
-          return "Select at least one defect before submitting";
-        }
-
-        // Every selected defect card must have at least some OK/Not OK
-        // value entered — an empty selected card would silently contribute
-        // 0 to the total, which would then wrongly blame a different card.
-        let emptyRow = null;
-        for (const row of selectedRows) {
-          const okVal =
-            Number(
-              document.querySelector(`.ok-input[data-card="${row}"]`)?.value,
-            ) || 0;
-          const notOkVal =
-            Number(
-              document.querySelector(`.bad-input[data-card="${row}"]`)?.value,
-            ) || 0;
-          if (okVal + notOkVal === 0) {
-            document
-              .querySelector(`.ok-input[data-card="${row}"]`)
-              ?.classList.add("field-invalid");
-            document
-              .querySelector(`.bad-input[data-card="${row}"]`)
-              ?.classList.add("field-invalid");
-            if (emptyRow === null) emptyRow = row;
-          }
-        }
-        if (emptyRow !== null) {
-          return `Defect #${emptyRow}: enter OK Qty and/or Not OK Qty`;
-        }
-
-        // Core rule: sum of OK + Not OK across every SELECTED defect card
-        // must equal Rework Qty (Rej Qty from the API) — no matter whether
-        // 1 defect is selected or several. Distribution across cards is
-        // up to the user; only the combined total has to match.
-        let selectedOk = 0;
-        let selectedNotOk = 0;
-        for (const row of selectedRows) {
-          selectedOk +=
-            Number(
-              document.querySelector(`.ok-input[data-card="${row}"]`)?.value,
-            ) || 0;
-          selectedNotOk +=
-            Number(
-              document.querySelector(`.bad-input[data-card="${row}"]`)?.value,
-            ) || 0;
-        }
-        const selectedTotal = selectedOk + selectedNotOk;
-
-        if (selectedTotal !== reworkQty) {
-          selectedRows.forEach((row) => {
-            document
-              .querySelector(`.ok-input[data-card="${row}"]`)
-              ?.classList.add("field-invalid");
-            document
-              .querySelector(`.bad-input[data-card="${row}"]`)
-              ?.classList.add("field-invalid");
+      if (reworkQty === 0) {
+        // Rework Qty = 0 → defect selection is NOT mandatory, but every
+        // OK + Not OK field across all cards must total 0.
+        if (totalOkNotOk !== 0) {
+          document.querySelectorAll(".ok-input, .bad-input").forEach((f) => {
+            if (Number(f.value) > 0) f.classList.add("field-invalid");
           });
-          return `Total OK (${selectedOk}) + Not OK (${selectedNotOk}) = ${selectedTotal}, but Rework Qty is ${reworkQty}. They must match.`;
+          return "Rework Qty is 0 — OK and Not OK quantities must also be 0";
         }
-
         return null;
       }
 
-      // ── Submit ────────────────────────────────────────────────────────────
-      document
-        .getElementById("reworkForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const form = this;
-
-          form
-            .querySelectorAll(".field-invalid")
-            .forEach((f) => f.classList.remove("field-invalid"));
-
-          const validationError = validateReworkForm();
-          if (validationError) {
-            showToast(validationError, "warn");
-            return;
-          }
-
-          let firstInvalid = null;
-          if (!form.checkValidity()) {
-            form.querySelectorAll(":invalid").forEach((field) => {
-              field.classList.add("field-invalid");
-              if (!firstInvalid) firstInvalid = field;
-            });
-            if (firstInvalid)
-              firstInvalid.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
-            showToast("Please fill in all required fields", "warn");
-            return;
-          }
-
-          const submitBtn = form.querySelector('button[type="submit"]');
-          const originalHTML = submitBtn.innerHTML;
-          submitBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Saving...';
-          submitBtn.disabled = true;
-
-          const formData = Object.fromEntries(new FormData(form).entries());
-
-          console.log(formData);
-
-          const { promise } = withTimeout(
-            (signal) =>
-              fetch(SUBMIT_API, {
-                method: "POST",
-                signal,
-                body: JSON.stringify({ action: "REWORK_SAVE", ...formData }),
-              }).then((res) => res.json()),
-            FETCH_TIMEOUT_MS,
-          );
-
-          promise
-            .then((res) => {
-              if (res.status !== "success")
-                throw new Error(res.message || "Save failed");
-
-              showToast("Data saved successfully", "success");
-              if (res.reworkNo) showToast(`Rework No: ${res.reworkNo}`, "info");
-
-              submitBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-              submitBtn.className = "btn btn-primary w-100 mt-4 btn-pop";
-              submitBtn.style.background = "var(--ok)";
-              burstFromElement(submitBtn, [
-                "var(--ok)",
-                "var(--gold)",
-                "var(--accent)",
-              ]);
-
-              form.reset();
-              resetDropdown("hold", "Select Hold Card");
-              for (let i = 1; i <= TOTAL_CARDS; i++) {
-                resetDropdown(`defect_${i}`, "Select Defect");
-                const sol = document.getElementById(`solution_${i}`);
-                if (sol) sol.value = "";
-                const cardBody = document.getElementById(`cardBody_${i}`);
-                if (cardBody)
-                  cardBody.classList.remove(
-                    "state-active",
-                    "state-ok",
-                    "state-bad",
-                  );
-              }
-              document
-                .querySelectorAll(".defect-field")
-                .forEach((f) => (f.required = false));
-
-              updateSummaryBar();
-
-              visibleCards = CARDS_STEP;
-              for (let i = 1; i <= TOTAL_CARDS; i++) {
-                document
-                  .getElementById(`card_${i}`)
-                  ?.classList.toggle("d-none", i > visibleCards);
-              }
-              updateLoadMoreBtn();
-
-              loadAllData({ background: true });
-            })
-            .catch((err) => {
-              console.error("Submit error:", err);
-              showToast(
-                err.name === "AbortError"
-                  ? "Request timed out — try again"
-                  : "Failed to save data",
-                "error",
-              );
-              submitBtn.innerHTML = '<i class="fas fa-times"></i> Failed';
-              submitBtn.className = "btn btn-primary w-100 mt-4 btn-pop";
-              submitBtn.style.background = "var(--bad)";
-            })
-            .finally(() => {
-              setTimeout(() => {
-                submitBtn.innerHTML = originalHTML;
-                submitBtn.className = "btn btn-primary w-100 mt-4";
-                submitBtn.style.background = "";
-                submitBtn.disabled = false;
-              }, 2000);
-            });
-        });
-
-      // ── Data loading (cache-first, then background refresh) ─────────────
-      function applyData({ rework, defects, solutions }) {
-        reworkData = rework || [];
-        defectsData = defects || [];
-        defectSolutionData = solutions || [];
-        renderBasicDetails();
-        renderCards();
+      // Rework Qty != 0 → at least one defect must be selected.
+      if (selectedRows.length === 0) {
+        return "Select at least one defect before submitting";
       }
 
-      async function fetchFresh() {
-        const [reworkJson, defectsJson, solutionJson] = await Promise.all([
-          fetchJSON(REWORK_API),
-          fetchJSON(DEFECT_ITEMS_API),
-          fetchJSON(DEFECT_SOLUTION_API),
-        ]);
+      // Every selected defect card must have at least some OK/Not OK
+      // value entered — an empty selected card would silently contribute
+      // 0 to the total, which would then wrongly blame a different card.
+      let emptyRow = null;
+      for (const row of selectedRows) {
+        const okVal =
+          Number(
+            document.querySelector(`.ok-input[data-card="${row}"]`)?.value,
+          ) || 0;
+        const notOkVal =
+          Number(
+            document.querySelector(`.bad-input[data-card="${row}"]`)?.value,
+          ) || 0;
+        if (okVal + notOkVal === 0) {
+          document
+            .querySelector(`.ok-input[data-card="${row}"]`)
+            ?.classList.add("field-invalid");
+          document
+            .querySelector(`.bad-input[data-card="${row}"]`)
+            ?.classList.add("field-invalid");
+          if (emptyRow === null) emptyRow = row;
+        }
+      }
+      if (emptyRow !== null) {
+        return `Defect #${emptyRow}: enter OK Qty and/or Not OK Qty`;
+      }
 
-        console.log(reworkJson.data);
-        console.log(solutionJson.data);
+      // Core rule: sum of OK + Not OK across every SELECTED defect card
+      // must equal Rework Qty (Rej Qty from the API) — no matter whether
+      // 1 defect is selected or several. Distribution across cards is
+      // up to the user; only the combined total has to match.
+      let selectedOk = 0;
+      let selectedNotOk = 0;
+      for (const row of selectedRows) {
+        selectedOk +=
+          Number(
+            document.querySelector(`.ok-input[data-card="${row}"]`)?.value,
+          ) || 0;
+        selectedNotOk +=
+          Number(
+            document.querySelector(`.bad-input[data-card="${row}"]`)?.value,
+          ) || 0;
+      }
+      const selectedTotal = selectedOk + selectedNotOk;
 
-        if (solutionJson?.error) {
-          console.error("Defect solution API error:", solutionJson);
-          showToast(
-            `Defect solution API error: ${solutionJson.error}`,
-            "error",
-          );
+      if (selectedTotal !== reworkQty) {
+        selectedRows.forEach((row) => {
+          document
+            .querySelector(`.ok-input[data-card="${row}"]`)
+            ?.classList.add("field-invalid");
+          document
+            .querySelector(`.bad-input[data-card="${row}"]`)
+            ?.classList.add("field-invalid");
+        });
+        return `Total OK (${selectedOk}) + Not OK (${selectedNotOk}) = ${selectedTotal}, but Rework Qty is ${reworkQty}. They must match.`;
+      }
+
+      return null;
+    }
+
+    // ── Submit ────────────────────────────────────────────────────────────
+    document
+      .getElementById("reworkForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault();
+        const form = this;
+
+        form
+          .querySelectorAll(".field-invalid")
+          .forEach((f) => f.classList.remove("field-invalid"));
+
+        const validationError = validateReworkForm();
+        if (validationError) {
+          showToast(validationError, "warn");
+          return;
         }
 
-        return {
-          rework: reworkJson?.data || [],
-          defects: defectsJson?.error ? [] : normalizeList(defectsJson),
-          solutions: solutionJson?.error ? [] : solutionJson?.data || [],
-        };
+        let firstInvalid = null;
+        if (!form.checkValidity()) {
+          form.querySelectorAll(":invalid").forEach((field) => {
+            field.classList.add("field-invalid");
+            if (!firstInvalid) firstInvalid = field;
+          });
+          if (firstInvalid)
+            firstInvalid.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          showToast("Please fill in all required fields", "warn");
+          return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalHTML = submitBtn.innerHTML;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+
+        const formData = Object.fromEntries(new FormData(form).entries());
+
+        console.log(formData);
+
+        const { promise } = withTimeout(
+          (signal) =>
+            fetch(SUBMIT_API, {
+              method: "POST",
+              signal,
+              body: JSON.stringify({ action: "REWORK_SAVE", ...formData }),
+            }).then((res) => res.json()),
+          FETCH_TIMEOUT_MS,
+        );
+
+        promise
+          .then((res) => {
+            if (res.status !== "success")
+              throw new Error(res.message || "Save failed");
+
+            showToast("Data saved successfully", "success");
+            if (res.reworkNo) showToast(`Rework No: ${res.reworkNo}`, "info");
+
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+            submitBtn.className = "btn btn-primary w-100 mt-4 btn-pop";
+            submitBtn.style.background = "var(--ok)";
+            burstFromElement(submitBtn, [
+              "var(--ok)",
+              "var(--gold)",
+              "var(--accent)",
+            ]);
+
+            form.reset();
+            resetDropdown("hold", "Select Hold Card");
+            for (let i = 1; i <= TOTAL_CARDS; i++) {
+              resetDropdown(`defect_${i}`, "Select Defect");
+              const sol = document.getElementById(`solution_${i}`);
+              if (sol) sol.value = "";
+              const cardBody = document.getElementById(`cardBody_${i}`);
+              if (cardBody)
+                cardBody.classList.remove(
+                  "state-active",
+                  "state-ok",
+                  "state-bad",
+                );
+            }
+            document
+              .querySelectorAll(".defect-field")
+              .forEach((f) => (f.required = false));
+
+            updateSummaryBar();
+
+            visibleCards = CARDS_STEP;
+            for (let i = 1; i <= TOTAL_CARDS; i++) {
+              document
+                .getElementById(`card_${i}`)
+                ?.classList.toggle("d-none", i > visibleCards);
+            }
+            updateLoadMoreBtn();
+
+            loadAllData({ background: true });
+          })
+          .catch((err) => {
+            console.error("Submit error:", err);
+            showToast(
+              err.name === "AbortError"
+                ? "Request timed out — try again"
+                : "Failed to save data",
+              "error",
+            );
+            submitBtn.innerHTML = '<i class="fas fa-times"></i> Failed';
+            submitBtn.className = "btn btn-primary w-100 mt-4 btn-pop";
+            submitBtn.style.background = "var(--bad)";
+          })
+          .finally(() => {
+            setTimeout(() => {
+              submitBtn.innerHTML = originalHTML;
+              submitBtn.className = "btn btn-primary w-100 mt-4";
+              submitBtn.style.background = "";
+              submitBtn.disabled = false;
+            }, 2000);
+          });
+      });
+
+    // ── Data loading (cache-first, then background refresh) ─────────────
+    function applyData({ rework, defects, solutions }) {
+      reworkData = rework || [];
+      defectsData = defects || [];
+      defectSolutionData = solutions || [];
+      renderBasicDetails();
+      renderCards();
+    }
+
+    async function fetchFresh() {
+      const [reworkJson, defectsJson, solutionJson] = await Promise.all([
+        fetchJSON(REWORK_API),
+        fetchJSON(DEFECT_ITEMS_API),
+        fetchJSON(DEFECT_SOLUTION_API),
+      ]);
+
+      console.log(reworkJson.data);
+      console.log(solutionJson.data);
+
+      if (solutionJson?.error) {
+        console.error("Defect solution API error:", solutionJson);
+        showToast(
+          `Defect solution API error: ${solutionJson.error}`,
+          "error",
+        );
       }
 
-      async function loadAllData({ background = false } = {}) {
-        if (background) showSyncPill("Refreshing job card data…");
+      return {
+        rework: reworkJson?.data || [],
+        defects: defectsJson?.error ? [] : normalizeList(defectsJson),
+        solutions: solutionJson?.error ? [] : solutionJson?.data || [],
+      };
+    }
 
-        try {
-          const fresh = await fetchFresh();
-          applyData(fresh);
-          writeCache(fresh);
+    async function loadAllData({ background = false } = {}) {
+      if (background) showSyncPill("Refreshing job card data…");
 
-          if (background) {
-            hideSyncPill();
-          } else {
-            revealApp();
-            if (!hasBootedOnce) {
-              showToast("Data loaded successfully", "success");
-              hasBootedOnce = true;
-            }
+      try {
+        const fresh = await fetchFresh();
+        applyData(fresh);
+        writeCache(fresh);
+
+        if (background) {
+          hideSyncPill();
+        } else {
+          revealApp();
+          if (!hasBootedOnce) {
+            showToast("Data loaded successfully", "success");
+            hasBootedOnce = true;
           }
-        } catch (err) {
-          console.error("Load error:", err);
+        }
+      } catch (err) {
+        console.error("Load error:", err);
 
-          if (background) {
-            showSyncPill("Refresh failed — showing cached data");
-            hideSyncPill(2500);
-            return;
-          }
+        if (background) {
+          showSyncPill("Refresh failed — showing cached data");
+          hideSyncPill(2500);
+          return;
+        }
 
-          const cached = readCache();
-          if (cached) {
-            applyData(cached);
-            revealApp();
-            showToast("Live refresh failed — showing last saved data", "warn");
-            return;
-          }
+        const cached = readCache();
+        if (cached) {
+          applyData(cached);
+          revealApp();
+          showToast("Live refresh failed — showing last saved data", "warn");
+          return;
+        }
 
-          document.getElementById("loadingOverlay").innerHTML = `
+        document.getElementById("loadingOverlay").innerHTML = `
             <div style="text-align:center;color:#dc2626;max-width:360px;padding:0 20px">
               <i class="fas fa-triangle-exclamation" style="font-size:3rem;margin-bottom:16px"></i>
               <h5 style="font-family:var(--font-display);font-weight:700;letter-spacing:0.5px;text-transform:uppercase">Couldn't load job card data</h5>
@@ -2089,32 +2130,33 @@
               </button>
             </div>
           `;
-        }
       }
+    }
 
-      function revealApp() {
-        const overlay = document.getElementById("loadingOverlay");
-        overlay.classList.add("fade-out");
-        document.getElementById("mainContainer").style.display = "block";
-        document.getElementById("mainContainer").classList.add("fade-in");
-        setTimeout(() => (overlay.style.display = "none"), 300);
+    function revealApp() {
+      const overlay = document.getElementById("loadingOverlay");
+      overlay.classList.add("fade-out");
+      document.getElementById("mainContainer").style.display = "block";
+      document.getElementById("mainContainer").classList.add("fade-in");
+      setTimeout(() => (overlay.style.display = "none"), 300);
+    }
+
+    // ── Boot ──────────────────────────────────────────────────────────────
+    (function boot() {
+      const cached = readCache();
+      const isFresh = cached && Date.now() - cached.ts < CACHE_TTL_MS;
+
+      if (cached) {
+        applyData(cached);
+        revealApp();
+        hasBootedOnce = true;
+        if (!isFresh) loadAllData({ background: true });
+      } else {
+        setLoadingText("Loading job card data…");
+        loadAllData();
       }
+    })();
+  </script>
+</body>
 
-      // ── Boot ──────────────────────────────────────────────────────────────
-      (function boot() {
-        const cached = readCache();
-        const isFresh = cached && Date.now() - cached.ts < CACHE_TTL_MS;
-
-        if (cached) {
-          applyData(cached);
-          revealApp();
-          hasBootedOnce = true;
-          if (!isFresh) loadAllData({ background: true });
-        } else {
-          setLoadingText("Loading job card data…");
-          loadAllData();
-        }
-      })();
-    </script>
-  </body>
 </html>
