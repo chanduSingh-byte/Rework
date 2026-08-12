@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rework Verification Portal</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              navy: { 950: "#0b1220", 800: "#16233b", 700: "#1e2f4d" },
+              safety: { DEFAULT: "#f5b700", dark: "#b98600" },
+              ok: { DEFAULT: "#178a4c", bg: "#e5f6ec" },
+              danger: { DEFAULT: "#d6402c", bg: "#fceceb" },
+            },
+            fontFamily: {
+              mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"
+      defer
+    ></script>
+  </head>
+
+  <body
+    class="bg-slate-100 text-slate-800"
+    x-data="reworkApp()"
+    x-init="init()"
+  >
+    <!-- TOP BAR -->
+    <div
+      class="bg-navy-950 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-safety"
+    >
+      <div>
+        <p
+          class="text-[11px] font-bold tracking-widest uppercase text-safety mb-0.5"
+        >
+          QC shop floor system
+        </p>
+        <h1 class="text-xl font-semibold">Rework verification</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <label
+          for="holdNo"
+          class="text-xs font-semibold text-slate-300 whitespace-nowrap"
+          >Hold number</label
+        >
+        <select
+          id="holdNo"
+          x-model="selectedHoldNo"
+          @change="selectHold()"
+          class="min-w-[220px] font-mono bg-navy-800 border border-navy-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-safety"
+        >
+          <option value="">
+            {{ loading ? 'Loading hold numbers…' : (loadError ? 'Error loading
+            data' : 'Select hold number') }}
+          </option>
+          <template x-for="h in holds" :key="h">
+            <option :value="h" x-text="h"></option>
+          </template>
+        </select>
+      </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-4 sm:p-6 pb-16">
+      <!-- STATUS BANNER -->
+      <div
+        x-show="message"
+        x-transition
+        class="rounded-lg px-4 py-3 mb-4 text-sm font-semibold"
+        :class="{'bg-danger-bg text-danger': message?.type==='error', 'bg-ok-bg text-ok': message?.type==='success', 'bg-amber-50 text-safety-dark': message?.type==='warning'}"
+        x-text="message?.text"
+      ></div>
+
+      <!-- DATA PLATE -->
+      <div
+        class="relative bg-white border border-slate-200 rounded-xl p-5 sm:p-6 mb-6"
+      >
+        <div
+          class="absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-slate-300"
+        ></div>
+        <div
+          class="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-slate-300"
+        ></div>
+        <div
+          class="flex items-center justify-between pb-3 mb-4 border-b border-dashed border-slate-200"
+        >
+          <span
+            class="text-[11px] font-bold tracking-widest uppercase text-slate-500"
+            >Rework record</span
+          >
+          <span
+            class="font-mono text-lg font-bold text-navy-950"
+            x-text="record.Rework_NO || '–'"
+          ></span>
+        </div>
+        <div
+          class="grid gap-4"
+          style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))"
+        >
+          <template
+            x-for="f in [['Date','Date'],['Hold no','Hold_No'],['Process','Process'],['Item code','Item_Code'],['JRC total','JRC_Total'],['Rework qty','Rework_Qty']]"
+            :key="f[1]"
+          >
+            <div>
+              <strong
+                class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1"
+                x-text="f[0]"
+              ></strong>
+              <span
+                class="font-mono text-[15px] font-semibold text-slate-900"
+                x-text="record[f[1]] || '–'"
+              ></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- DEFECT TABLE -->
+      <h3 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">
+        Defect &amp; rework details
+      </h3>
+      <div
+        class="bg-white border border-slate-200 rounded-xl overflow-x-auto mb-6"
+      >
+        <table class="w-full min-w-[720px] text-sm border-collapse">
+          <thead>
+            <tr
+              class="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500 font-bold"
+            >
+              <th class="p-3 text-left">#</th>
+              <th class="p-3 text-left">Defect</th>
+              <th class="p-3 text-left">Qty</th>
+              <th class="p-3 text-left">ORP</th>
+              <th class="p-3 text-left">Obs</th>
+              <th class="p-3 text-left">Solution</th>
+              <th class="p-3 text-left">OK qty</th>
+              <th class="p-3 text-left">Not OK qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-if="defects.length === 0">
+              <tr>
+                <td
+                  colspan="8"
+                  class="text-center text-slate-500 py-8"
+                  x-text="selectedHoldNo ? 'No active defect records for this hold number.' : 'Select a hold number above to load defect details.'"
+                ></td>
+              </tr>
+            </template>
+            <template x-for="(d, i) in defects" :key="i">
+              <tr
+                class="even:bg-slate-50/50 hover:bg-slate-100 border-t border-slate-100"
+              >
+                <td class="p-3" x-text="i+1"></td>
+                <td class="p-3" x-text="d.name"></td>
+                <td class="p-3" x-text="d.qty"></td>
+                <td class="p-3" x-text="d.orp"></td>
+                <td class="p-3" x-text="d.obs"></td>
+                <td class="p-3" x-text="d.solution"></td>
+                <td class="p-3">
+                  <span
+                    x-show="d.ok!=='-'"
+                    class="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-ok-bg text-ok"
+                    x-text="d.ok"
+                  ></span
+                  ><span x-show="d.ok==='-'">-</span>
+                </td>
+                <td class="p-3">
+                  <span
+                    x-show="d.notok!=='-'"
+                    class="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-danger-bg text-danger"
+                    x-text="d.notok"
+                  ></span
+                  ><span x-show="d.notok==='-'">-</span>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- VERIFICATION PANEL -->
+      <div
+        class="bg-white border border-slate-200 border-l-4 border-l-safety rounded-xl p-5 sm:p-6"
+      >
+        <h3
+          class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-5"
+        >
+          QC verification panel
+        </h3>
+
+        <div
+          class="grid gap-5"
+          style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))"
+        >
+          <div>
+            <label class="block text-xs font-bold mb-1.5"
+              >QC number / inspector ID
+              <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              x-model="qcNumber"
+              @blur="touched.qcNumber=true"
+              placeholder="QC-8841"
+              class="w-full border-[1.5px] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2"
+              :class="errors.qcNumber ? 'border-danger focus:ring-danger/20' : (qcNumber ? 'border-ok focus:ring-ok/20' : 'border-slate-300 focus:ring-navy-800/10')"
+            />
+            <p
+              x-show="errors.qcNumber"
+              class="text-xs text-danger mt-1"
+              x-text="errors.qcNumber"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold mb-1.5"
+              >Inspection by <span class="text-danger">*</span></label
+            >
+            <select
+              x-model="inspection"
+              @blur="touched.inspection=true"
+              @change="touched.inspection=true"
+              class="w-full border-[1.5px] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2"
+              :class="errors.inspection ? 'border-danger focus:ring-danger/20' : (inspection ? 'border-ok focus:ring-ok/20' : 'border-slate-300 focus:ring-navy-800/10')"
+            >
+              <option value="">Select inspector</option>
+              <option value="Manoj">Manoj</option>
+              <option value="Vijay">Vijay</option>
+            </select>
+            <p
+              x-show="errors.inspection"
+              class="text-xs text-danger mt-1"
+              x-text="errors.inspection"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold mb-1.5"
+              >Status <span class="text-danger">*</span></label
+            >
+            <select
+              x-model="status"
+              @blur="touched.status=true"
+              @change="touched.status=true"
+              class="w-full border-[1.5px] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2"
+              :class="errors.status ? 'border-danger focus:ring-danger/20' : (status ? 'border-ok focus:ring-ok/20' : 'border-slate-300 focus:ring-navy-800/10')"
+            >
+              <option value="">Select status</option>
+              <option value="OK">OK</option>
+              <option value="NOT OK">NOT OK</option>
+            </select>
+            <p
+              x-show="errors.status"
+              class="text-xs text-danger mt-1"
+              x-text="errors.status"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold mb-1.5"
+              >Verification date &amp; time</label
+            >
+            <input
+              type="text"
+              readonly
+              :value="verificationTime"
+              placeholder="Set automatically on submit"
+              class="w-full border-[1.5px] border-slate-200 bg-slate-100 text-slate-500 font-mono rounded-lg px-3 py-2.5 text-sm cursor-not-allowed"
+            />
+            <p class="text-[11px] text-slate-500 mt-1">
+              Filled in when you verify.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="flex items-center gap-4 mt-5 pt-4 border-t border-slate-100 flex-wrap"
+        >
+          <button
+            @click="attemptSubmit()"
+            :disabled="!canSubmit"
+            class="bg-navy-950 text-white font-bold text-sm px-7 py-2.5 rounded-lg disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed hover:enabled:bg-navy-800 active:enabled:scale-[0.98] transition"
+          >
+            <span
+              x-text="submitting ? 'Submitting…' : 'Verify & submit'"
+            ></span>
+          </button>
+          <span
+            class="text-xs text-slate-500"
+            x-text="!selectedHoldNo ? 'Select a hold number and complete all required fields.' : (canSubmit ? 'Ready to submit.' : 'Complete all required fields to enable submission.')"
+          ></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div
+      x-show="showModal"
+      x-cloak
+      class="fixed inset-0 bg-navy-950/55 flex items-center justify-center p-5 z-50"
+    >
+      <div class="bg-white rounded-xl max-w-sm w-full p-6">
+        <h4 class="text-base font-semibold text-navy-950 mb-1">
+          Confirm verification
+        </h4>
+        <p class="text-sm text-slate-500 mb-4 leading-relaxed">
+          This records the inspection result against the rework entry. It can't
+          be undone from here.
+        </p>
+        <div class="bg-slate-100 rounded-lg p-3.5 mb-5 text-sm space-y-1">
+          <div class="flex justify-between">
+            <span>Hold no</span
+            ><strong class="font-mono" x-text="record.Hold_No"></strong>
+          </div>
+          <div class="flex justify-between">
+            <span>Rework no</span
+            ><strong class="font-mono" x-text="record.Rework_NO"></strong>
+          </div>
+          <div class="flex justify-between">
+            <span>Inspection by</span
+            ><strong class="font-mono" x-text="inspection"></strong>
+          </div>
+          <div class="flex justify-between">
+            <span>Status</span
+            ><strong class="font-mono" x-text="status"></strong>
+          </div>
+          <div class="flex justify-between">
+            <span>QC number</span
+            ><strong class="font-mono" x-text="qcNumber"></strong>
+          </div>
+        </div>
+        <div class="flex gap-2.5 justify-end">
+          <button
+            @click="showModal=false"
+            class="bg-slate-200 text-slate-800 font-bold text-sm px-4.5 py-2.5 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            @click="submit()"
+            class="bg-ok text-white font-bold text-sm px-4.5 py-2.5 rounded-lg"
+          >
+            Confirm &amp; submit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function reworkApp() {
+        return {
+          GAS_API_URL:
+            "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data",
+          holds: [],
+          allData: [],
+          loading: true,
+          loadError: false,
+          selectedHoldNo: "",
+          record: {},
+          defects: [],
+          qcNumber: "",
+          inspection: "",
+          status: "",
+          verificationTime: "",
+          touched: { qcNumber: false, inspection: false, status: false },
+          submitting: false,
+          showModal: false,
+          message: null,
+
+          async init() {
+            try {
+              const res = await fetch(this.GAS_API_URL);
+              if (!res.ok) throw new Error(res.status);
+              const json = await res.json();
+              this.allData = Array.isArray(json.data)
+                ? json.data
+                : json.data
+                  ? [json.data]
+                  : [];
+              this.holds = this.allData.map((r) => r.Hold_No).filter(Boolean);
+              this.loading = false;
+              if (this.holds.length === 0) this.loadError = true;
+            } catch (e) {
+              console.error(e);
+              this.loading = false;
+              this.loadError = true;
+              this.message = {
+                type: "error",
+                text: "Couldn't load hold numbers. Check your connection and reload the page.",
+              };
+            }
+          },
+
+          selectHold() {
+            this.message = null;
+            this.resetForm();
+            if (!this.selectedHoldNo) {
+              this.record = {};
+              this.defects = [];
+              return;
+            }
+            const r = this.allData.find(
+              (d) => String(d.Hold_No) === String(this.selectedHoldNo),
+            );
+            if (!r) {
+              this.record = {};
+              this.defects = [];
+              this.message = {
+                type: "error",
+                text: "No data found for the selected hold number.",
+              };
+              return;
+            }
+            this.record = r;
+            this.qcNumber = r.QC_Number || "";
+            this.status = r.Status || "";
+            this.verificationTime = r.Verification_DateTime || "";
+            this.defects = [1, 2, 3, 4, 5, 6]
+              .filter(
+                (i) => r[`Defect_${i}`] && String(r[`Defect_${i}`]).trim(),
+              )
+              .map((i) => ({
+                name: r[`Defect_${i}`],
+                qty: r[`Qty_${i}`] || "-",
+                orp: r[`ORP_${i}`] || "-",
+                obs: r[`Obs_${i}`] || "-",
+                solution: r[`Solution_${i}`] || "-",
+                ok: r[`OK_${i}`] || "-",
+                notok: r[`NotOK_${i}`] || "-",
+              }));
+          },
+
+          resetForm() {
+            this.qcNumber = "";
+            this.inspection = "";
+            this.status = "";
+            this.verificationTime = "";
+            this.touched = {
+              qcNumber: false,
+              inspection: false,
+              status: false,
+            };
+          },
+
+          get errors() {
+            const e = {};
+            if (this.touched.qcNumber) {
+              const v = this.qcNumber.trim();
+              if (!v) e.qcNumber = "Enter a QC number.";
+              else if (v.length < 3) e.qcNumber = "QC number looks too short.";
+              else if (!/^[A-Za-z0-9\-\/ ]+$/.test(v))
+                e.qcNumber = "Use letters, numbers, and dashes only.";
+            }
+            if (this.touched.inspection && !this.inspection)
+              e.inspection = "Select who performed the inspection.";
+            if (this.touched.status && !this.status)
+              e.status = "Select a verification status.";
+            return e;
+          },
+
+          get canSubmit() {
+            return (
+              !!this.selectedHoldNo &&
+              this.qcNumber.trim().length >= 3 &&
+              /^[A-Za-z0-9\-\/ ]+$/.test(this.qcNumber.trim()) &&
+              !!this.inspection &&
+              !!this.status
+            );
+          },
+
+          attemptSubmit() {
+            this.touched = { qcNumber: true, inspection: true, status: true };
+            if (!this.selectedHoldNo) {
+              this.message = {
+                type: "warning",
+                text: "Select a hold number before verifying.",
+              };
+              return;
+            }
+            if (!this.canSubmit) {
+              this.message = {
+                type: "error",
+                text: "Fix the highlighted fields before submitting.",
+              };
+              return;
+            }
+            this.message = null;
+            this.showModal = true;
+          },
+
+          async submit() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            this.verificationTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            const payload = {
+              action: "verify",
+              Hold_No: this.record.Hold_No,
+              Rework_NO: this.record.Rework_NO,
+              Status: this.status,
+              QC_Number: this.qcNumber.trim(),
+              Verify_Action: "VERIFIED",
+              Verification_DateTime: this.verificationTime,
+            };
+
+            this.showModal = false;
+            this.submitting = true;
+
+            try {
+              await fetch(this.GAS_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload),
+              });
+              this.message = {
+                type: "success",
+                text: `Verified — hold ${payload.Hold_No}, rework ${payload.Rework_NO}, status ${payload.Status}, QC ${payload.QC_Number}.`,
+              };
+            } catch (e) {
+              console.error(e);
+              this.message = {
+                type: "error",
+                text: "Couldn't submit the verification. Check your connection and try again.",
+              };
+            } finally {
+              this.submitting = false;
+            }
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
