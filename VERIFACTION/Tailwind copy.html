@@ -54,15 +54,6 @@
         border-bottom: 3px solid var(--accent-safety);
       }
 
-      .topbar .brand-eyebrow {
-        font-size: 11px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--accent-safety);
-        font-weight: 700;
-        margin: 0 0 2px;
-      }
-
       .topbar h1 {
         font-size: 20px;
         margin: 0;
@@ -276,10 +267,6 @@
         background: var(--accent-danger-bg);
         color: var(--accent-danger);
       }
-      .chip-neutral {
-        background: var(--steel-200);
-        color: var(--text-600);
-      }
 
       .empty-row td {
         text-align: center;
@@ -473,7 +460,7 @@
       .modal-summary div {
         display: flex;
         justify-content: space-between;
-        padding: 3px 0;
+        padding: 4px 0;
       }
       .modal-summary strong {
         font-family: var(--mono);
@@ -529,7 +516,6 @@
   <body>
     <div class="topbar">
       <div>
-        <!-- <p class="brand-eyebrow">QC shop floor system</p> -->
         <h1>Rework verification</h1>
       </div>
       <div class="hold-picker">
@@ -584,8 +570,8 @@
               <th>#</th>
               <th>Defect</th>
               <th>Qty</th>
-              <th>ORP</th>
-              <th>Obs</th>
+              <th>Specification</th>
+              <th>Observation</th>
               <th>Solution</th>
               <th>OK qty</th>
               <th>Not OK qty</th>
@@ -639,23 +625,35 @@
               </div>
             </div>
 
-            <div class="form-group" id="group-qcNumber">
-              <label for="okqtyNumber"
+            <div class="form-group" id="group-okQty">
+              <label for="okQty"
                 >OK Qty<span class="required-mark">*</span></label
               >
-              <input type="number" id="okqtyNumber" autocomplete="off" />
-              <div class="field-error" id="error-qcNumber">
-                Enter a QC number.
+              <input
+                type="number"
+                id="okQty"
+                placeholder="0"
+                min="0"
+                autocomplete="off"
+              />
+              <div class="field-error" id="error-okQty">
+                Enter a valid OK quantity.
               </div>
             </div>
 
-            <div class="form-group" id="group-qcNumber">
-              <label for="qcNumber"
+            <div class="form-group" id="group-notOkQty">
+              <label for="notOkQty"
                 >Not OK Qty<span class="required-mark">*</span></label
               >
-              <input type="number" id="qcNumber" autocomplete="off" />
-              <div class="field-error" id="error-qcNumber">
-                Enter a QC number.
+              <input
+                type="number"
+                id="notOkQty"
+                placeholder="0"
+                min="0"
+                autocomplete="off"
+              />
+              <div class="field-error" id="error-notOkQty">
+                Enter a valid Not OK quantity.
               </div>
             </div>
 
@@ -728,7 +726,13 @@
       let fetchedReworkData = [];
       let selectedReworkData = null;
 
-      const fields = ["qcNumber", "inspection", "statusSelect"];
+      const fields = [
+        "qcNumber",
+        "inspection",
+        "okQty",
+        "notOkQty",
+        "statusSelect",
+      ];
 
       document.addEventListener("DOMContentLoaded", () => {
         loadReworkData();
@@ -831,6 +835,12 @@
           data["Rework Qty"] || data.Rework_Qty || "–";
 
         document.getElementById("qcNumber").value = data.QC_Number || "";
+        document.getElementById("inspection").value =
+          data.Inspection_By || data.Inspection || "";
+        document.getElementById("okQty").value =
+          data.OK_Qty !== undefined ? data.OK_Qty : data.OK || "";
+        document.getElementById("notOkQty").value =
+          data.NotOK_Qty !== undefined ? data.NotOK_Qty : data.NotOK || "";
         document.getElementById("statusSelect").value = data.Status || "";
         document.getElementById("verificationTime").value =
           data.Verification_DateTime || "";
@@ -890,14 +900,15 @@
           `<tr class="empty-row"><td colspan="8">Select a hold number above to load defect details.</td></tr>`;
 
         document.getElementById("qcNumber").value = "";
-        document.getElementById("statusSelect").value = "";
         document.getElementById("inspection").value = "";
+        document.getElementById("okQty").value = "";
+        document.getElementById("notOkQty").value = "";
+        document.getElementById("statusSelect").value = "";
         document.getElementById("verificationTime").value = "";
 
         fields.forEach((id) => {
-          document
-            .getElementById(`group-${id}`)
-            .classList.remove("invalid", "valid");
+          const grp = document.getElementById(`group-${id}`);
+          if (grp) grp.classList.remove("invalid", "valid");
         });
       }
 
@@ -932,6 +943,26 @@
           }
         }
 
+        if (id === "okQty") {
+          if (value === "") {
+            valid = false;
+            message = "Enter OK quantity.";
+          } else if (isNaN(value) || Number(value) < 0) {
+            valid = false;
+            message = "Enter a non-negative number.";
+          }
+        }
+
+        if (id === "notOkQty") {
+          if (value === "") {
+            valid = false;
+            message = "Enter Not OK quantity.";
+          } else if (isNaN(value) || Number(value) < 0) {
+            valid = false;
+            message = "Enter a non-negative number.";
+          }
+        }
+
         if (id === "statusSelect") {
           if (!value) {
             valid = false;
@@ -943,9 +974,9 @@
         if (!valid) {
           if (showError || el.dataset.touched === "true") {
             group.classList.add("invalid");
-            errorEl.textContent = message;
+            if (errorEl) errorEl.textContent = message;
           }
-        } else if (value) {
+        } else if (value !== "") {
           group.classList.add("valid");
         }
 
@@ -977,11 +1008,11 @@
 
         const allValid = fields.every((id) => {
           const el = document.getElementById(id);
+          const group = document.getElementById(`group-${id}`);
           return (
             el.value.trim().length > 0 &&
-            !document
-              .getElementById(`group-${id}`)
-              .classList.contains("invalid")
+            group &&
+            !group.classList.contains("invalid")
           );
         });
 
@@ -1009,6 +1040,8 @@
 
         const qcNumber = document.getElementById("qcNumber").value.trim();
         const inspection = document.getElementById("inspection").value;
+        const okQty = document.getElementById("okQty").value.trim();
+        const notOkQty = document.getElementById("notOkQty").value.trim();
         const status = document.getElementById("statusSelect").value;
 
         const summary = document.getElementById("modalSummary");
@@ -1016,8 +1049,10 @@
           <div><span>Hold no</span><strong>${escapeHtml(selectedReworkData.Hold_No)}</strong></div>
           <div><span>Rework no</span><strong>${escapeHtml(selectedReworkData.Rework_NO)}</strong></div>
           <div><span>Inspection by</span><strong>${escapeHtml(inspection)}</strong></div>
-          <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
           <div><span>QC number</span><strong>${escapeHtml(qcNumber)}</strong></div>
+          <div><span>OK Qty</span><strong>${escapeHtml(okQty)}</strong></div>
+          <div><span>Not OK Qty</span><strong>${escapeHtml(notOkQty)}</strong></div>
+          <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
         `;
 
         document.getElementById("confirmModal").classList.add("open");
@@ -1036,6 +1071,9 @@
       async function executeVerification() {
         const submitBtn = document.getElementById("submitBtn");
         const qcNumber = document.getElementById("qcNumber").value.trim();
+        const inspection = document.getElementById("inspection").value;
+        const okQty = document.getElementById("okQty").value.trim();
+        const notOkQty = document.getElementById("notOkQty").value.trim();
         const status = document.getElementById("statusSelect").value;
 
         const now = new Date();
@@ -1053,6 +1091,9 @@
           Rework_NO: selectedReworkData.Rework_NO,
           Status: status,
           QC_Number: qcNumber,
+          Inspection_By: inspection,
+          OK_Qty: Number(okQty),
+          NotOK_Qty: Number(notOkQty),
           Verify_Action: "VERIFIED",
           Verification_DateTime: currentDateTime,
         };
@@ -1071,7 +1112,7 @@
           await response.text();
 
           showMessage(
-            `Verified — hold ${payload.Hold_No}, rework ${payload.Rework_NO}, status ${payload.Status}, QC ${payload.QC_Number}.`,
+            `Verified — Hold ${payload.Hold_No}, Rework ${payload.Rework_NO}, OK: ${payload.OK_Qty}, Not OK: ${payload.NotOK_Qty}, Status: ${payload.Status}, QC: ${payload.QC_Number}.`,
             "success",
           );
         } catch (error) {
