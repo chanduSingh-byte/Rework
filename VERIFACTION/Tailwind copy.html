@@ -510,13 +510,24 @@
           padding: 16px;
         }
       }
+
+      .headerLogo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+      #clock {
+        color: #5e5d5a;
+      }
     </style>
   </head>
 
   <body>
     <div class="topbar">
-      <div>
-        <h1>Rework verification</h1>
+      <div class="headerLogo">
+        <h1>Rework Verification</h1>
+        <h1 id="clock"></h1>
       </div>
       <div class="hold-picker">
         <label for="holdNoSelect">Hold number</label>
@@ -755,6 +766,21 @@
         const msgDiv = document.getElementById("statusMessage");
         msgDiv.style.display = "none";
       }
+
+      //Live Clock
+
+      const clock = () => {
+        document.getElementById("clock").textContent =
+          new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+      };
+
+      clock();
+      setInterval(clock, 1000);
 
       async function loadReworkData() {
         const select = document.getElementById("holdNoSelect");
@@ -1098,6 +1124,7 @@
           Verification_DateTime: currentDateTime,
         };
 
+        console.log(JSON.stringify(payload, null, 2));
         closeModal();
         submitBtn.disabled = true;
         submitBtn.textContent = "Submitting…";
