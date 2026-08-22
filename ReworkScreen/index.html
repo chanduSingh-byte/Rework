@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="hi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rework Module</title>
+    <style>
+      :root {
+        --bg: #0a0b12;
+        --bg-card: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #7c8cff;
+        --accent-warm: #ffb454;
+        --text: #f2f2f7;
+        --text-dim: #8a8ca8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ambient glow layers */
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(90px);
+        pointer-events: none;
+        z-index: 0;
+      }
+      body::before {
+        width: 480px;
+        height: 480px;
+        top: -160px;
+        left: -140px;
+        background: radial-gradient(
+          circle,
+          rgba(124, 140, 255, 0.28),
+          transparent 70%
+        );
+      }
+      body::after {
+        width: 420px;
+        height: 420px;
+        bottom: -160px;
+        right: -120px;
+        background: radial-gradient(
+          circle,
+          rgba(255, 180, 84, 0.18),
+          transparent 70%
+        );
+      }
+
+      /* faint grid texture */
+      .grid-overlay {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+          );
+        background-size: 42px 42px;
+        mask-image: radial-gradient(
+          ellipse at center,
+          black 40%,
+          transparent 85%
+        );
+        z-index: 0;
+      }
+
+      nav {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 32px;
+        z-index: 10;
+        border-bottom: 1px solid var(--border);
+        background: rgba(10, 11, 18, 0.5);
+        backdrop-filter: blur(10px);
+      }
+
+      .logo {
+        font-weight: 800;
+        letter-spacing: 1px;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent-warm);
+        box-shadow: 0 0 10px var(--accent-warm);
+      }
+
+      .logo span.tag {
+        color: var(--text-dim);
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-left: 1px solid var(--border);
+        padding-left: 10px;
+        margin-left: 2px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 8px;
+      }
+
+      main {
+        flex: 1 1 auto;
+        position: relative;
+        z-index: 1;
+        min-height: 0;
+      }
+
+      .screen {
+        display: none;
+        height: 100%;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .screen.active {
+        display: flex;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .screen.active h1,
+      .screen.active .badge,
+      .screen.active .btn-row,
+      .screen.active .card {
+        animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      }
+
+      .screen.active .badge {
+        animation-delay: 0.05s;
+      }
+      .screen.active h1 {
+        animation-delay: 0.12s;
+      }
+      .screen.active .btn-row {
+        animation-delay: 0.22s;
+      }
+      .screen.active .card {
+        animation-delay: 0.05s;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes riseIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes floatY {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      @keyframes spinSlow {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .eyebrow {
+        letter-spacing: 3px;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: var(--accent-warm);
+        margin-bottom: 14px;
+        font-weight: 700;
+      }
+
+      h1 {
+        font-size: clamp(28px, 5vw, 46px);
+        font-weight: 800;
+        line-height: 1.12;
+        margin-bottom: 14px;
+        max-width: 700px;
+        letter-spacing: -0.5px;
+      }
+
+      p.desc {
+        color: var(--text-dim);
+        font-size: 15px;
+        max-width: 440px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 36px;
+        max-width: 460px;
+        width: 100%;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(6px);
+      }
+
+      .btn-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 110px;
+        justify-content: center;
+      }
+
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        padding: 13px 24px;
+        border-radius: 100px;
+        font-weight: 600;
+        font-size: 14px;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease,
+          border-color 0.18s ease;
+        cursor: pointer;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+
+      .nav-link.primary {
+        background: linear-gradient(135deg, var(--accent), #5a6bff);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(124, 140, 255, 0.25);
+      }
+      .nav-link.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(124, 140, 255, 0.4);
+      }
+
+      .nav-link.outline {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: var(--border);
+        color: var(--text);
+      }
+      .nav-link.outline:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+        background: rgba(124, 140, 255, 0.1);
+      }
+
+      .nav-link.warm {
+        background: rgba(255, 180, 84, 0.08);
+        border-color: rgba(255, 180, 84, 0.35);
+        color: var(--accent-warm);
+      }
+      .nav-link.warm:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 180, 84, 0.16);
+        box-shadow: 0 10px 24px rgba(255, 180, 84, 0.18);
+      }
+
+      .nav-link.secondary {
+        background: transparent;
+        border: 1px solid rgba(242, 242, 247, 0.15);
+        color: var(--text-dim);
+        padding: 11px 22px;
+      }
+      .nav-link.secondary:hover {
+        color: var(--text);
+        border-color: rgba(242, 242, 247, 0.35);
+      }
+
+      .badge {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+        margin: 0 auto 22px;
+        box-shadow: 0 10px 30px rgba(124, 140, 255, 0.35);
+      }
+
+      /* nav-link inside header should be smaller */
+      nav .nav-link {
+        padding: 10px 18px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 560px) {
+        nav {
+          padding: 14px 16px;
+        }
+        .logo span.tag {
+          display: none;
+        }
+        .nav-links {
+          gap: 6px;
+        }
+        nav .nav-link {
+          padding: 8px 12px;
+          font-size: 12px;
+        }
+        .card {
+          padding: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid-overlay"></div>
+
+    <nav>
+      <div class="logo">
+        <span class="dot"></span>
+        SPS
+        <span class="tag">Rework Module</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link primary" href="Rework-Final.html">Rework Entry</a>
+        <a class="nav-link outline" href="Dashboard.html">View Data</a>
+        <a class="nav-link warm" href="Tailwind copy.html">Verify Data</a>
+      </div>
+    </nav>
+
+    <main>
+      <!-- Screen 1 -->
+      <section id="screen1" class="screen active">
+        <h1 style="font-style: 30px">Rework Management System</h1>
+
+        <div class="btn-row">
+          <a class="nav-link primary" href="Rework-Final.html">Rework Entry</a>
+          <a class="nav-link warm" href="Tailwind copy.html">Verify Data</a>
+          <a class="nav-link outline" href="Dashboard-v2.html">Dashboard</a>
+        </div>
+      </section>
+
+      <!-- Screen 2 -->
+      <section id="screen2" class="screen">
+        <div class="card">
+          <div class="badge"></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      function showScreen(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+      }
+    </script>
+  </body>
+</html>

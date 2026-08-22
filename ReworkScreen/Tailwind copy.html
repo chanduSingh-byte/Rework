@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rework Verification Portal</title>
+
+    <style>
+      :root {
+        --navy-950: #0b1220;
+        --navy-800: #16233b;
+        --navy-700: #1e2f4d;
+        --steel-100: #f4f7fb;
+        --steel-200: #e7edf5;
+        --steel-300: #d7e0ec;
+        --steel-400: #9fb0c6;
+        --text-900: #1b2635;
+        --text-600: #4c5c73;
+        --accent-safety: #f5b700;
+        --accent-safety-dark: #b98600;
+        --accent-ok: #178a4c;
+        --accent-ok-bg: #e5f6ec;
+        --accent-danger: #d6402c;
+        --accent-danger-bg: #fceceb;
+        --radius: 10px;
+        --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+        --sans:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--sans);
+        background: var(--steel-100);
+        margin: 0;
+        padding: 0 0 60px;
+        color: var(--text-900);
+      }
+
+      /* ===== TOP BAR ===== */
+      .topbar {
+        background: var(--navy-950);
+        color: #fff;
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+        border-bottom: 3px solid var(--accent-safety);
+      }
+
+      .topbar h1 {
+        font-size: 20px;
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .hold-picker {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hold-picker label {
+        font-size: 12px;
+        color: var(--steel-300);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .hold-picker select {
+        padding: 10px 14px;
+        font-size: 14px;
+        border-radius: 8px;
+        border: 1px solid var(--navy-700);
+        background: var(--navy-800);
+        color: #fff;
+        min-width: 240px;
+        font-family: var(--mono);
+      }
+
+      .hold-picker select:focus-visible {
+        outline: 2px solid var(--accent-safety);
+        outline-offset: 2px;
+      }
+
+      /* ===== LAYOUT ===== */
+      .wrap {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      #statusMessage {
+        display: none;
+        padding: 12px 16px;
+        border-radius: var(--radius);
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 18px;
+      }
+      #statusMessage.error {
+        background: var(--accent-danger-bg);
+        color: var(--accent-danger);
+        display: block;
+      }
+      #statusMessage.success {
+        background: var(--accent-ok-bg);
+        color: var(--accent-ok);
+        display: block;
+      }
+      #statusMessage.warning {
+        background: #fff6df;
+        color: var(--accent-safety-dark);
+        display: block;
+      }
+
+      /* ===== DATA PLATE ===== */
+      .plate {
+        background: #fff;
+        border: 1px solid var(--steel-300);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 22px;
+        position: relative;
+      }
+
+      .plate::before,
+      .plate::after {
+        content: "";
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--steel-300);
+        top: 10px;
+      }
+      .plate::before {
+        left: 10px;
+      }
+      .plate::after {
+        right: 10px;
+      }
+
+      .plate-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--steel-300);
+      }
+
+      .plate-header .label {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-600);
+        font-weight: 700;
+      }
+
+      .plate-header .rework-no {
+        font-family: var(--mono);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--navy-950);
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+      }
+
+      .info-item strong {
+        display: block;
+        color: var(--text-600);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 4px;
+        font-weight: 700;
+      }
+
+      .info-item span {
+        font-family: var(--mono);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-900);
+      }
+
+      /* ===== SECTION HEADERS ===== */
+      h3.section-title {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-600);
+        margin: 0 0 12px;
+        font-weight: 700;
+      }
+
+      /* ===== TABLE ===== */
+      .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        background: #fff;
+        border: 1px solid var(--steel-300);
+        border-radius: 12px;
+        margin-bottom: 24px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        text-align: left;
+        font-size: 13px;
+        white-space: pre-line;
+        border-bottom: 1px solid var(--steel-200);
+      }
+
+      th {
+        background: var(--steel-100);
+        color: var(--text-600);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fafcfe;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: var(--steel-200);
+      }
+
+      .qty-chip {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 12px;
+        font-family: var(--mono);
+      }
+      .chip-ok {
+        background: var(--accent-ok-bg);
+        color: var(--accent-ok);
+      }
+      .chip-notok {
+        background: var(--accent-danger-bg);
+        color: var(--accent-danger);
+      }
+
+      .empty-row td {
+        text-align: center;
+        color: var(--text-600);
+        padding: 28px 12px;
+        font-style: normal;
+        font-size: 13.5px;
+      }
+
+      /* ===== VERIFICATION PANEL ===== */
+      .verification-section {
+        border: 1px solid var(--steel-300);
+        border-left: 4px solid var(--accent-safety);
+        border-radius: 12px;
+        padding: 22px 24px;
+        background: #fff;
+      }
+
+      .verification-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 8px;
+      }
+
+      @media (max-width: 768px) {
+        .verification-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-weight: 700;
+        font-size: 12.5px;
+        margin-bottom: 6px;
+        color: var(--text-900);
+      }
+
+      .form-group .required-mark {
+        color: var(--accent-danger);
+        margin-left: 2px;
+      }
+
+      .form-group input,
+      .form-group select {
+        padding: 10px 12px;
+        border: 1.5px solid var(--steel-300);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: var(--sans);
+        background: #fff;
+        color: var(--text-900);
+        transition: border-color 0.15s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--navy-800);
+        box-shadow: 0 0 0 3px rgba(22, 35, 59, 0.12);
+      }
+
+      .form-group.invalid input,
+      .form-group.invalid select {
+        border-color: var(--accent-danger);
+      }
+      .form-group.invalid input:focus,
+      .form-group.invalid select:focus {
+        box-shadow: 0 0 0 3px rgba(214, 64, 44, 0.14);
+      }
+
+      .form-group.valid input,
+      .form-group.valid select {
+        border-color: var(--accent-ok);
+      }
+
+      .field-error {
+        font-size: 12px;
+        color: var(--accent-danger);
+        margin-top: 5px;
+        min-height: 15px;
+        display: none;
+      }
+      .form-group.invalid .field-error {
+        display: block;
+      }
+
+      .field-hint {
+        font-size: 11.5px;
+        color: var(--text-600);
+        margin-top: 5px;
+      }
+
+      .timestamp-box {
+        background: var(--steel-100);
+        color: var(--text-600);
+        cursor: not-allowed;
+        font-family: var(--mono);
+      }
+
+      .panel-footer {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--steel-200);
+        flex-wrap: wrap;
+      }
+
+      .verify-btn {
+        background: var(--navy-950);
+        color: #fff;
+        border: none;
+        padding: 12px 28px;
+        font-size: 14.5px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.05s;
+      }
+
+      .verify-btn:hover:not(:disabled) {
+        background: var(--navy-800);
+      }
+      .verify-btn:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+
+      .verify-btn:disabled {
+        background: var(--steel-300);
+        color: var(--text-600);
+        cursor: not-allowed;
+      }
+
+      .panel-footer .footnote {
+        font-size: 12px;
+        color: var(--text-600);
+      }
+
+      /* ===== MODAL ===== */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 18, 32, 0.55);
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 20px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+
+      .modal-box {
+        background: #fff;
+        border-radius: 12px;
+        max-width: 420px;
+        width: 100%;
+        padding: 24px;
+      }
+
+      .modal-box h4 {
+        margin: 0 0 6px;
+        font-size: 16px;
+        color: var(--navy-950);
+      }
+
+      .modal-box p {
+        margin: 0 0 16px;
+        font-size: 13.5px;
+        color: var(--text-600);
+        line-height: 1.5;
+      }
+
+      .modal-summary {
+        background: var(--steel-100);
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-bottom: 18px;
+        font-size: 13px;
+      }
+      .modal-summary div {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+      }
+      .modal-summary strong {
+        font-family: var(--mono);
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .modal-actions button {
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+      }
+
+      .modal-cancel {
+        background: var(--steel-200);
+        color: var(--text-900);
+      }
+
+      .modal-confirm {
+        background: var(--accent-ok);
+        color: #fff;
+      }
+
+      @media (max-width: 600px) {
+        .wrap {
+          padding: 14px;
+        }
+        .topbar {
+          padding: 14px;
+        }
+        .hold-picker {
+          width: 100%;
+        }
+        .hold-picker select {
+          flex: 1;
+          min-width: 0;
+        }
+        .plate,
+        .verification-section {
+          padding: 16px;
+        }
+      }
+
+      .headerLogo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+      #clock {
+        color: #5e5d5a;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="topbar">
+      <div class="headerLogo">
+        <h1>Rework Verification</h1>
+        <h1 id="clock"></h1>
+      </div>
+      <div class="hold-picker">
+        <label for="holdNoSelect">Hold number</label>
+        <select id="holdNoSelect" onchange="handleHoldSelection()">
+          <option value="">Loading hold numbers…</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div id="statusMessage" role="status"></div>
+
+      <div class="plate">
+        <div class="plate-header">
+          <span class="label">Rework record</span>
+          <span class="rework-no" id="reworkNo">–</span>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <strong>Date</strong>
+            <span id="reworkDate">–</span>
+          </div>
+          <div class="info-item">
+            <strong>Hold no</strong>
+            <span id="holdNo">–</span>
+          </div>
+          <div class="info-item">
+            <strong>Process</strong>
+            <span id="process">–</span>
+          </div>
+          <div class="info-item">
+            <strong>Item code</strong>
+            <span id="itemCode">–</span>
+          </div>
+          <div class="info-item">
+            <strong>JRC total</strong>
+            <span id="jrcTotal">–</span>
+          </div>
+          <div class="info-item">
+            <strong>Rework qty</strong>
+            <span id="reworkQty">–</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Defect &amp; rework details</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Defect</th>
+              <th>Qty</th>
+              <th>Specification</th>
+              <th>Observation</th>
+              <th>Solution</th>
+              <th>OK qty</th>
+              <th>Not OK qty</th>
+            </tr>
+          </thead>
+          <tbody id="defectTableBody">
+            <tr class="empty-row">
+              <td colspan="8">
+                Select a hold number above to load defect details.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="verification-section">
+        <h3 class="section-title" style="margin-bottom: 18px">
+          QC verification panel
+        </h3>
+
+        <form id="verificationForm" novalidate>
+          <div class="verification-grid">
+            <div class="form-group" id="group-qcNumber">
+              <label for="qcNumber"
+                >QC number / inspector ID<span class="required-mark"
+                  >*</span
+                ></label
+              >
+              <input
+                type="text"
+                id="qcNumber"
+                placeholder="QC-8841"
+                autocomplete="off"
+              />
+              <div class="field-error" id="error-qcNumber">
+                Enter a QC number.
+              </div>
+            </div>
+
+            <div class="form-group" id="group-inspection">
+              <label for="inspection"
+                >Inspection by<span class="required-mark">*</span></label
+              >
+              <select id="inspection">
+                <option value="">Select inspector</option>
+                <option value="Manoj">Manoj</option>
+                <option value="Vijay">Vijay</option>
+              </select>
+              <div class="field-error" id="error-inspection">
+                Select who performed the inspection.
+              </div>
+            </div>
+
+            <div class="form-group" id="group-okQty">
+              <label for="okQty"
+                >OK Qty<span class="required-mark">*</span></label
+              >
+              <input
+                type="number"
+                id="okQty"
+                placeholder="0"
+                min="0"
+                autocomplete="off"
+              />
+              <div class="field-error" id="error-okQty">
+                Enter a valid OK quantity.
+              </div>
+            </div>
+
+            <div class="form-group" id="group-notOkQty">
+              <label for="notOkQty"
+                >Not OK Qty<span class="required-mark">*</span></label
+              >
+              <input
+                type="number"
+                id="notOkQty"
+                placeholder="0"
+                min="0"
+                autocomplete="off"
+              />
+              <div class="field-error" id="error-notOkQty">
+                Enter a valid Not OK quantity.
+              </div>
+            </div>
+
+            <div class="form-group" id="group-statusSelect">
+              <label for="statusSelect"
+                >Status<span class="required-mark">*</span></label
+              >
+              <select id="statusSelect">
+                <option value="">Select status</option>
+                <option value="OK">OK</option>
+                <option value="NOT OK">NOT OK</option>
+              </select>
+              <div class="field-error" id="error-statusSelect">
+                Select a verification status.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="verificationTime">Verification date &amp; time</label>
+              <input
+                type="text"
+                id="verificationTime"
+                class="timestamp-box"
+                placeholder="Set automatically on submit"
+                readonly
+              />
+              <div class="field-hint">Filled in when you verify.</div>
+            </div>
+          </div>
+
+          <div class="panel-footer">
+            <button
+              type="button"
+              id="submitBtn"
+              class="verify-btn"
+              onclick="attemptSubmit()"
+              disabled
+            >
+              Verify &amp; submit
+            </button>
+            <span class="footnote" id="footnote"
+              >Select a hold number and complete all required fields.</span
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal-box">
+        <h4>Confirm verification</h4>
+        <p>
+          This records the inspection result against the rework entry. It can't
+          be undone from here.
+        </p>
+        <div class="modal-summary" id="modalSummary"></div>
+        <div class="modal-actions">
+          <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+          <button class="modal-confirm" onclick="executeVerification()">
+            Confirm &amp; submit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const GAS_API_URL =
+        "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
+
+      let fetchedReworkData = [];
+      let selectedReworkData = null;
+
+      const fields = [
+        "qcNumber",
+        "inspection",
+        "okQty",
+        "notOkQty",
+        "statusSelect",
+      ];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadReworkData();
+        fields.forEach((id) => {
+          const el = document.getElementById(id);
+          el.addEventListener("input", () => validateField(id, false));
+          el.addEventListener("blur", () => validateField(id, true));
+          el.addEventListener("change", () => validateField(id, true));
+        });
+      });
+
+      function showMessage(text, type) {
+        const msgDiv = document.getElementById("statusMessage");
+        msgDiv.className = type;
+        msgDiv.textContent = text;
+        msgDiv.style.display = "block";
+      }
+
+      function hideMessage() {
+        const msgDiv = document.getElementById("statusMessage");
+        msgDiv.style.display = "none";
+      }
+
+      //Live Clock
+
+      const clock = () => {
+        document.getElementById("clock").textContent =
+          new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+      };
+
+      clock();
+      setInterval(clock, 1000);
+
+      async function loadReworkData() {
+        const select = document.getElementById("holdNoSelect");
+        try {
+          select.innerHTML = `<option value="">Loading hold numbers…</option>`;
+
+          const response = await fetch(GAS_API_URL);
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+          const responseData = await response.json();
+          fetchedReworkData = responseData.data || [];
+          if (!Array.isArray(fetchedReworkData))
+            fetchedReworkData = [fetchedReworkData];
+
+          if (fetchedReworkData.length === 0) {
+            select.innerHTML = `<option value="">No hold numbers found</option>`;
+            clearUI();
+            return;
+          }
+
+          select.innerHTML = `<option value="">Select hold number</option>`;
+          fetchedReworkData.forEach((record) => {
+            if (record.Hold_No && String(record.Hold_No).trim() !== "") {
+              const option = document.createElement("option");
+              option.value = record.Hold_No;
+              option.textContent = record.Hold_No;
+              select.appendChild(option);
+            }
+          });
+
+          hideMessage();
+        } catch (error) {
+          console.error("Fetch error:", error);
+          select.innerHTML = `<option value="">Error loading hold numbers</option>`;
+          showMessage(
+            "Couldn't load hold numbers. Check your connection and reload the page.",
+            "error",
+          );
+        }
+      }
+
+      function handleHoldSelection() {
+        const selectedHoldNo = document.getElementById("holdNoSelect").value;
+        hideMessage();
+
+        if (!selectedHoldNo) {
+          selectedReworkData = null;
+          clearUI();
+          updateSubmitState();
+          return;
+        }
+
+        const selectedRecord = fetchedReworkData.find(
+          (record) => String(record.Hold_No) === String(selectedHoldNo),
+        );
+
+        if (!selectedRecord) {
+          selectedReworkData = null;
+          clearUI();
+          showMessage("No data found for the selected hold number.", "error");
+          updateSubmitState();
+          return;
+        }
+
+        selectedReworkData = selectedRecord;
+        renderDataToUI(selectedRecord);
+        updateSubmitState();
+      }
+
+      function renderDataToUI(data) {
+        document.getElementById("reworkNo").innerText = data.Rework_NO || "–";
+        document.getElementById("reworkDate").innerText = data.Date || "–";
+        document.getElementById("holdNo").innerText = data.Hold_No || "–";
+        document.getElementById("process").innerText = data.Process || "–";
+        document.getElementById("itemCode").innerText = data.Item_Code || "–";
+        document.getElementById("jrcTotal").innerText = data.JRC_Total || "–";
+        document.getElementById("reworkQty").innerText =
+          data["Rework Qty"] || data.Rework_Qty || "–";
+
+        document.getElementById("qcNumber").value = data.QC_Number || "";
+        document.getElementById("inspection").value =
+          data.Inspection_By || data.Inspection || "";
+        document.getElementById("okQty").value =
+          data.OK_Qty !== undefined ? data.OK_Qty : data.OK || "";
+        document.getElementById("notOkQty").value =
+          data.NotOK_Qty !== undefined ? data.NotOK_Qty : data.NotOK || "";
+        document.getElementById("statusSelect").value = data.Status || "";
+        document.getElementById("verificationTime").value =
+          data.Verification_DateTime || "";
+
+        const tableBody = document.getElementById("defectTableBody");
+        tableBody.innerHTML = "";
+        let defectFound = false;
+
+        for (let i = 1; i <= 6; i++) {
+          const defectName = data[`Defect_${i}`];
+          if (defectName && String(defectName).trim() !== "") {
+            defectFound = true;
+            const row = document.createElement("tr");
+            addCell(row, i);
+            addCell(row, defectName);
+            addCell(row, data[`Qty_${i}`] || "-");
+            addCell(row, data[`ORP_${i}`] || "-");
+            addCell(row, data[`Obs_${i}`] || "-");
+            addCell(row, data[`Solution_${i}`] || "-");
+            addCell(row, data[`OK_${i}`] || "-", "ok");
+            addCell(row, data[`NotOK_${i}`] || "-", "notok");
+            tableBody.appendChild(row);
+          }
+        }
+
+        if (!defectFound) {
+          tableBody.innerHTML = `<tr class="empty-row"><td colspan="8">No active defect records for this hold number.</td></tr>`;
+        }
+
+        fields.forEach((id) => validateField(id, false));
+      }
+
+      function addCell(row, value, chipType) {
+        const cell = document.createElement("td");
+        if (chipType && value !== "-" && value !== "") {
+          const chip = document.createElement("span");
+          chip.className =
+            "qty-chip " + (chipType === "ok" ? "chip-ok" : "chip-notok");
+          chip.textContent = value;
+          cell.appendChild(chip);
+        } else {
+          cell.textContent = value ?? "-";
+        }
+        row.appendChild(cell);
+      }
+
+      function clearUI() {
+        document.getElementById("reworkNo").innerText = "–";
+        document.getElementById("reworkDate").innerText = "–";
+        document.getElementById("holdNo").innerText = "–";
+        document.getElementById("process").innerText = "–";
+        document.getElementById("itemCode").innerText = "–";
+        document.getElementById("jrcTotal").innerText = "–";
+        document.getElementById("reworkQty").innerText = "–";
+
+        document.getElementById("defectTableBody").innerHTML =
+          `<tr class="empty-row"><td colspan="8">Select a hold number above to load defect details.</td></tr>`;
+
+        document.getElementById("qcNumber").value = "";
+        document.getElementById("inspection").value = "";
+        document.getElementById("okQty").value = "";
+        document.getElementById("notOkQty").value = "";
+        document.getElementById("statusSelect").value = "";
+        document.getElementById("verificationTime").value = "";
+
+        fields.forEach((id) => {
+          const grp = document.getElementById(`group-${id}`);
+          if (grp) grp.classList.remove("invalid", "valid");
+        });
+      }
+
+      /* ===== VALIDATION ===== */
+
+      function validateField(id, showError) {
+        const el = document.getElementById(id);
+        const group = document.getElementById(`group-${id}`);
+        const errorEl = document.getElementById(`error-${id}`);
+        let valid = true;
+        let message = "";
+
+        const value = el.value.trim();
+
+        if (id === "qcNumber") {
+          if (!value) {
+            valid = false;
+            message = "Enter a QC number.";
+          } else if (value.length < 3) {
+            valid = false;
+            message = "QC number looks too short.";
+          } else if (!/^[A-Za-z0-9\-\/ ]+$/.test(value)) {
+            valid = false;
+            message = "Use letters, numbers, and dashes only.";
+          }
+        }
+
+        if (id === "inspection") {
+          if (!value) {
+            valid = false;
+            message = "Select who performed the inspection.";
+          }
+        }
+
+        if (id === "okQty") {
+          if (value === "") {
+            valid = false;
+            message = "Enter OK quantity.";
+          } else if (isNaN(value) || Number(value) < 0) {
+            valid = false;
+            message = "Enter a non-negative number.";
+          }
+        }
+
+        if (id === "notOkQty") {
+          if (value === "") {
+            valid = false;
+            message = "Enter Not OK quantity.";
+          } else if (isNaN(value) || Number(value) < 0) {
+            valid = false;
+            message = "Enter a non-negative number.";
+          }
+        }
+
+        if (id === "statusSelect") {
+          if (!value) {
+            valid = false;
+            message = "Select a verification status.";
+          }
+        }
+
+        group.classList.remove("invalid", "valid");
+        if (!valid) {
+          if (showError || el.dataset.touched === "true") {
+            group.classList.add("invalid");
+            if (errorEl) errorEl.textContent = message;
+          }
+        } else if (value !== "") {
+          group.classList.add("valid");
+        }
+
+        if (showError) el.dataset.touched = "true";
+
+        updateSubmitState();
+        return valid;
+      }
+
+      function validateAll(showErrors) {
+        let allValid = true;
+        fields.forEach((id) => {
+          const ok = validateField(id, showErrors);
+          if (!ok) allValid = false;
+        });
+        return allValid;
+      }
+
+      function updateSubmitState() {
+        const submitBtn = document.getElementById("submitBtn");
+        const footnote = document.getElementById("footnote");
+
+        if (!selectedReworkData) {
+          submitBtn.disabled = true;
+          footnote.textContent =
+            "Select a hold number and complete all required fields.";
+          return;
+        }
+
+        const allValid = fields.every((id) => {
+          const el = document.getElementById(id);
+          const group = document.getElementById(`group-${id}`);
+          return (
+            el.value.trim().length > 0 &&
+            group &&
+            !group.classList.contains("invalid")
+          );
+        });
+
+        submitBtn.disabled = !allValid;
+        footnote.textContent = allValid
+          ? "Ready to submit."
+          : "Complete all required fields to enable submission.";
+      }
+
+      /* ===== SUBMIT FLOW ===== */
+
+      function attemptSubmit() {
+        if (!selectedReworkData) {
+          showMessage("Select a hold number before verifying.", "warning");
+          return;
+        }
+
+        const allValid = validateAll(true);
+        if (!allValid) {
+          showMessage("Fix the highlighted fields before submitting.", "error");
+          return;
+        }
+
+        hideMessage();
+
+        const qcNumber = document.getElementById("qcNumber").value.trim();
+        const inspection = document.getElementById("inspection").value;
+        const okQty = document.getElementById("okQty").value.trim();
+        const notOkQty = document.getElementById("notOkQty").value.trim();
+        const status = document.getElementById("statusSelect").value;
+
+        const summary = document.getElementById("modalSummary");
+        summary.innerHTML = `
+          <div><span>Hold no</span><strong>${escapeHtml(selectedReworkData.Hold_No)}</strong></div>
+          <div><span>Rework no</span><strong>${escapeHtml(selectedReworkData.Rework_NO)}</strong></div>
+          <div><span>Inspection by</span><strong>${escapeHtml(inspection)}</strong></div>
+          <div><span>QC number</span><strong>${escapeHtml(qcNumber)}</strong></div>
+          <div><span>OK Qty</span><strong>${escapeHtml(okQty)}</strong></div>
+          <div><span>Not OK Qty</span><strong>${escapeHtml(notOkQty)}</strong></div>
+          <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
+        `;
+
+        document.getElementById("confirmModal").classList.add("open");
+      }
+
+      function closeModal() {
+        document.getElementById("confirmModal").classList.remove("open");
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str ?? "";
+        return div.innerHTML;
+      }
+
+      async function executeVerification() {
+        const submitBtn = document.getElementById("submitBtn");
+        const qcNumber = document.getElementById("qcNumber").value.trim();
+        const inspection = document.getElementById("inspection").value;
+        const okQty = document.getElementById("okQty").value.trim();
+        const notOkQty = document.getElementById("notOkQty").value.trim();
+        const status = document.getElementById("statusSelect").value;
+
+        const now = new Date();
+        const currentDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+          now.getDate(),
+        ).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(
+          now.getMinutes(),
+        ).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+
+        document.getElementById("verificationTime").value = currentDateTime;
+
+        const payload = {
+          action: "verify",
+          Hold_No: selectedReworkData.Hold_No,
+          Rework_NO: selectedReworkData.Rework_NO,
+          Status: status,
+          QC_Number: qcNumber,
+          Inspection_By: inspection,
+          OK_Qty: Number(okQty),
+          NotOK_Qty: Number(notOkQty),
+          Verify_Action: "VERIFIED",
+          Verification_DateTime: currentDateTime,
+        };
+
+        console.log(JSON.stringify(payload, null, 2));
+        closeModal();
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting…";
+
+        try {
+          const response = await fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload),
+          });
+
+          await response.text();
+
+          showMessage(
+            `Verified — Hold ${payload.Hold_No}, Rework ${payload.Rework_NO}, OK: ${payload.OK_Qty}, Not OK: ${payload.NotOK_Qty}, Status: ${payload.Status}, QC: ${payload.QC_Number}.`,
+            "success",
+          );
+        } catch (error) {
+          console.error("Submit error:", error);
+          showMessage(
+            "Couldn't submit the verification. Check your connection and try again.",
+            "error",
+          );
+        } finally {
+          submitBtn.textContent = "Verify & submit";
+          updateSubmitState();
+        }
+      }
+    </script>
+  </body>
+</html>
