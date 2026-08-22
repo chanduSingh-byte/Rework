@@ -734,6 +734,9 @@
       const GAS_API_URL =
         "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
 
+      const savever =
+        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec";
+
       let fetchedReworkData = [];
       let selectedReworkData = null;
 
@@ -886,7 +889,7 @@
             addCell(row, data[`ORP_${i}`] || "-");
             addCell(row, data[`Obs_${i}`] || "-");
             addCell(row, data[`Solution_${i}`] || "-");
-            addCell(row, data[`OK_${i}`] || "-", "ok");
+            const ok = addCell(row, data[`OK_${i}`] || "-", "ok");
             addCell(row, data[`NotOK_${i}`] || "-", "notok");
             tableBody.appendChild(row);
           }
@@ -901,16 +904,22 @@
 
       function addCell(row, value, chipType) {
         const cell = document.createElement("td");
+
         if (chipType && value !== "-" && value !== "") {
           const chip = document.createElement("span");
+
           chip.className =
             "qty-chip " + (chipType === "ok" ? "chip-ok" : "chip-notok");
+
           chip.textContent = value;
           cell.appendChild(chip);
         } else {
           cell.textContent = value ?? "-";
         }
+
         row.appendChild(cell);
+
+        return cell; // 👈 important
       }
 
       function clearUI() {
@@ -1021,6 +1030,70 @@
         return allValid;
       }
 
+      function validateDefectQtyMatch() {
+        if (!selectedReworkData) {
+          return {
+            valid: false,
+            message: "Please select a hold number.",
+          };
+        }
+
+        let defectOkQty = 0;
+        let defectNotOkQty = 0;
+
+        // Calculate total OK / Not OK from defects
+        for (let i = 1; i <= 6; i++) {
+          const defectName = selectedReworkData[`Defect_${i}`];
+
+          if (defectName && String(defectName).trim() !== "") {
+            defectOkQty += Number(selectedReworkData[`OK_${i}`]) || 0;
+            defectNotOkQty += Number(selectedReworkData[`NotOK_${i}`]) || 0;
+          }
+        }
+
+        // Verification quantities
+        const verificationOkQty = Number(
+          document.getElementById("okQty").value,
+        );
+
+        const verificationNotOkQty = Number(
+          document.getElementById("notOkQty").value,
+        );
+
+        console.log("========== QTY VALIDATION ==========");
+        console.log("Defect OK Qty:", defectOkQty);
+        console.log("Verification OK Qty:", verificationOkQty);
+        console.log("Defect Not OK Qty:", defectNotOkQty);
+        console.log("Verification Not OK Qty:", verificationNotOkQty);
+        console.log("====================================");
+
+        // OK quantity mismatch
+        if (defectOkQty !== verificationOkQty) {
+          return {
+            valid: false,
+            message:
+              `OK Qty mismatch. Defect OK Qty = ${defectOkQty}, ` +
+              `Verification OK Qty = ${verificationOkQty}.`,
+          };
+        }
+
+        // Not OK quantity mismatch
+        if (defectNotOkQty !== verificationNotOkQty) {
+          return {
+            valid: false,
+            message:
+              `Not OK Qty mismatch. Defect Not OK Qty = ${defectNotOkQty}, ` +
+              `Verification Not OK Qty = ${verificationNotOkQty}.`,
+          };
+        }
+
+        // Both matched
+        return {
+          valid: true,
+          message: "OK and Not OK quantities matched.",
+        };
+      }
+
       function updateSubmitState() {
         const submitBtn = document.getElementById("submitBtn");
         const footnote = document.getElementById("footnote");
@@ -1056,30 +1129,87 @@
           return;
         }
 
+        // 1. Normal form validation
         const allValid = validateAll(true);
+
         if (!allValid) {
           showMessage("Fix the highlighted fields before submitting.", "error");
           return;
         }
 
+        // 2. Defect Qty vs Verification Qty validation
+        const qtyValidation = validateDefectQtyMatch();
+
+        if (!qtyValidation.valid) {
+          showMessage(qtyValidation.message, "error");
+          return;
+        }
+
+        // 3. Everything matched → open confirmation modal
         hideMessage();
 
         const qcNumber = document.getElementById("qcNumber").value.trim();
+
         const inspection = document.getElementById("inspection").value;
+
         const okQty = document.getElementById("okQty").value.trim();
+
         const notOkQty = document.getElementById("notOkQty").value.trim();
+
         const status = document.getElementById("statusSelect").value;
 
         const summary = document.getElementById("modalSummary");
+
         summary.innerHTML = `
-          <div><span>Hold no</span><strong>${escapeHtml(selectedReworkData.Hold_No)}</strong></div>
-          <div><span>Rework no</span><strong>${escapeHtml(selectedReworkData.Rework_NO)}</strong></div>
-          <div><span>Inspection by</span><strong>${escapeHtml(inspection)}</strong></div>
-          <div><span>QC number</span><strong>${escapeHtml(qcNumber)}</strong></div>
-          <div><span>OK Qty</span><strong>${escapeHtml(okQty)}</strong></div>
-          <div><span>Not OK Qty</span><strong>${escapeHtml(notOkQty)}</strong></div>
-          <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
-        `;
+        <div>
+            <span>Hold no</span>
+            <strong>
+                ${escapeHtml(selectedReworkData.Hold_No)}
+            </strong>
+        </div>
+
+        <div>
+            <span>Rework no</span>
+            <strong>
+                ${escapeHtml(selectedReworkData.Rework_NO)}
+            </strong>
+        </div>
+
+        <div>
+            <span>Inspection by</span>
+            <strong>
+                ${escapeHtml(inspection)}
+            </strong>
+        </div>
+
+        <div>
+            <span>QC number</span>
+            <strong>
+                ${escapeHtml(qcNumber)}
+            </strong>
+        </div>
+
+        <div>
+            <span>OK Qty</span>
+            <strong>
+                ${escapeHtml(okQty)}
+            </strong>
+        </div>
+
+        <div>
+            <span>Not OK Qty</span>
+            <strong>
+                ${escapeHtml(notOkQty)}
+            </strong>
+        </div>
+
+        <div>
+            <span>Status</span>
+            <strong>
+                ${escapeHtml(status)}
+            </strong>
+        </div>
+    `;
 
         document.getElementById("confirmModal").classList.add("open");
       }
@@ -1112,7 +1242,7 @@
         document.getElementById("verificationTime").value = currentDateTime;
 
         const payload = {
-          action: "verify",
+          action: "VERIFACTION",
           Hold_No: selectedReworkData.Hold_No,
           Rework_NO: selectedReworkData.Rework_NO,
           Status: status,
@@ -1130,7 +1260,7 @@
         submitBtn.textContent = "Submitting…";
 
         try {
-          const response = await fetch(GAS_API_URL, {
+          const response = await fetch(savever, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(payload),
