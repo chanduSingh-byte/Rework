@@ -1,0 +1,1586 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Rework Inspection Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* ── Brand: industrial inspection palette ── */
+        --clr-ink: #0b1220;
+        --clr-teal: #0d9488;
+        --clr-teal-dark: #0f766e;
+        --clr-teal-bg: #ecfdf9;
+        --clr-teal-text: #0f766e;
+
+        --clr-amber: #f59e0b;
+        --clr-amber-bg: #fffbeb;
+        --clr-amber-text: #b45309;
+        --clr-amber-dark: #92400e;
+
+        --clr-rose: #e11d48;
+        --clr-rose-bg: #fff1f2;
+        --clr-rose-text: #be123c;
+
+        --clr-indigo: #6366f1;
+        --clr-indigo-bg: #eef2ff;
+        --clr-indigo-text: #4338ca;
+
+        /* Process badge cycling palette */
+        --clr-p0-bg: #ecfdf9;
+        --clr-p0-text: #0f766e;
+        --clr-p1-bg: #eef2ff;
+        --clr-p1-text: #4338ca;
+        --clr-p2-bg: #fffbeb;
+        --clr-p2-text: #b45309;
+        --clr-p3-bg: #fdf4ff;
+        --clr-p3-text: #a21caf;
+        --clr-p4-bg: #fff1f2;
+        --clr-p4-text: #be123c;
+        --clr-p5-bg: #f0f9ff;
+        --clr-p5-text: #0369a1;
+        --clr-p6-bg: #fff7ed;
+        --clr-p6-text: #c2410c;
+        --clr-p7-bg: #f1f5f9;
+        --clr-p7-text: #334155;
+
+        /* Backgrounds & surfaces */
+        --clr-bg-page: #eef1f4;
+        --clr-bg-card: #ffffff;
+        --clr-bg-header: #0b1220;
+        --clr-bg-stats: #f7f8fa;
+        --clr-bg-table-head: #f7f8fa;
+        --clr-bg-row-hover: #f4fbfa;
+        --clr-bg-search: #ffffff;
+        --clr-bg-expand: #fbfcfd;
+
+        --clr-border: #edf0f2;
+        --clr-border-input: #e2e8f0;
+        --clr-border-focus: #5eead4;
+
+        --clr-text-primary: #0b1220;
+        --clr-text-secondary: #384354;
+        --clr-text-muted: #93a0af;
+        --clr-text-th: #6b7686;
+
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+        --radius-xl: 20px;
+        --radius-full: 9999px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--clr-bg-page);
+        background-image:
+          radial-gradient(
+            circle at 100% 0%,
+            rgba(13, 148, 136, 0.06),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 0% 100%,
+            rgba(99, 102, 241, 0.05),
+            transparent 40%
+          );
+        min-height: 100vh;
+        padding: 28px 16px;
+        color: var(--clr-text-primary);
+      }
+
+      .disp {
+        font-family: "Space Grotesk", "Inter", sans-serif;
+      }
+
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .spin {
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes fadeSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-slide {
+        animation: fadeSlide 0.18s ease-out;
+      }
+
+      /* ── Expand/collapse animation ── */
+      tr.detail-row td {
+        padding: 0 !important;
+        border-bottom: none !important;
+      }
+
+      .detail-wrap {
+        display: grid;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        grid-template-rows: 0fr;
+        background: var(--clr-bg-expand);
+        transition: grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .detail-wrap.open {
+        grid-template-rows: 1fr;
+        border-bottom: 1px solid var(--clr-border);
+      }
+
+      .detail-wrap-inner {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        min-height: 0;
+        box-sizing: border-box;
+      }
+
+      .detail-content {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        opacity: 0;
+        transform: translateY(-6px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.25s ease;
+
+        padding: 18px 22px 22px 54px;
+      }
+
+      @media (max-width: 900px) {
+        .detail-content {
+          padding: 16px 18px 20px 28px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .detail-content {
+          padding: 14px 14px 18px 14px;
+        }
+      }
+
+      .detail-wrap.open .detail-content {
+        opacity: 1;
+        transform: translateY(0);
+        transition:
+          opacity 0.3s ease 0.12s,
+          transform 0.3s ease 0.12s;
+      }
+
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      .pulse-dot {
+        animation: pulse-dot 2s ease-in-out infinite;
+      }
+
+      ::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      #searchBox:focus-within {
+        border-color: var(--clr-border-focus) !important;
+        box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.18);
+      }
+
+      #refreshBtn {
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.1s;
+      }
+
+      #refreshBtn:hover {
+        background: #f0fdfa;
+        border-color: var(--clr-teal);
+        color: var(--clr-teal-dark);
+      }
+
+      #refreshBtn:active {
+        transform: scale(0.97);
+      }
+
+      tbody tr.data-row {
+        transition: background 0.12s;
+        cursor: pointer;
+      }
+
+      tbody tr.data-row:hover td {
+        background: var(--clr-bg-row-hover);
+      }
+
+      tbody tr.data-row.expanded td {
+        background: var(--clr-teal-bg);
+      }
+
+      th {
+        transition: color 0.12s;
+        letter-spacing: 0.07em;
+      }
+
+      th:hover {
+        color: var(--clr-teal-dark) !important;
+      }
+
+      th.sorted {
+        color: var(--clr-teal-dark) !important;
+      }
+
+      th.sorted .arrow {
+        opacity: 1 !important;
+        color: var(--clr-teal);
+      }
+
+      .arrow {
+        margin-left: 4px;
+        opacity: 0.35;
+        font-size: 10px;
+        display: inline-block;
+        transition: transform 0.15s;
+      }
+
+      .chevron {
+        transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .expanded .chevron {
+        transform: rotate(90deg);
+      }
+
+      .defect-card {
+        border: 1px solid #e6e9ed;
+        border-radius: var(--radius-md);
+        background: var(--clr-bg-card);
+        padding: 14px 16px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .defect-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--clr-amber);
+      }
+
+      /* NEW: verification cards reuse .defect-card but with an indigo accent */
+      .verification-card::before {
+        background: var(--clr-indigo);
+      }
+
+      /* Responsive defect grid: 3 cols desktop → 2 cols tablet → 1 col mobile,
+       so field labels/values never get cramped or overflow the card. */
+      .defect-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 28px;
+        border-top: 1px solid var(--clr-border);
+      }
+
+      @media (max-width: 900px) {
+        .defect-grid {
+          grid-template-columns: repeat(2, 1fr);
+          column-gap: 18px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .defect-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .defect-field {
+        display: grid;
+        grid-template-columns: 118px 1fr;
+        align-items: start;
+        column-gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--clr-border);
+        min-width: 0;
+      }
+
+      @media (max-width: 480px) {
+        .defect-field {
+          grid-template-columns: 1fr;
+          row-gap: 3px;
+          padding: 10px 0;
+        }
+
+        .defect-field .lbl {
+          white-space: normal;
+        }
+      }
+
+      .defect-card-head-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+
+      .defect-card-head-row > span {
+        flex-shrink: 0;
+      }
+
+      .defect-field .lbl {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--clr-text-muted);
+        padding-top: 1px;
+        white-space: nowrap;
+      }
+
+      .defect-field .val {
+        font-size: 12.5px;
+        color: var(--clr-text-secondary);
+        line-height: 1.45;
+        word-break: break-word;
+        white-space: pre-wrap;
+      }
+
+      .status-pill {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: var(--radius-full);
+        letter-spacing: 0.02em;
+      }
+
+      @media (max-width: 720px) {
+        table thead {
+          display: none;
+        }
+
+        table,
+        tbody,
+        tr,
+        td {
+          display: block;
+          width: 100%;
+        }
+
+        tr.data-row {
+          border-bottom: 1px solid var(--clr-border);
+          padding: 10px 16px;
+        }
+
+        tr.data-row td {
+          padding: 3px 0 !important;
+        }
+
+        tr.data-row td.mobile-label::before {
+          content: attr(data-label);
+          font-size: 9.5px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--clr-text-muted);
+          display: block;
+          margin-bottom: 1px;
+        }
+      }
+      .formating {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+        color: #ef1d1d;
+        font-weight: 600;
+        border-radius: 16px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div
+      style="
+        max-width: 1800px;
+        margin: 0 auto;
+        background: var(--clr-bg-card);
+        border-radius: var(--radius-xl);
+        box-shadow:
+          0 1px 2px rgba(11, 18, 32, 0.04),
+          0 20px 45px -20px rgba(11, 18, 32, 0.18);
+        overflow: hidden;
+        border: 1px solid rgba(11, 18, 32, 0.04);
+      "
+    >
+      <!-- ── Header ── -->
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 28px;
+          background: var(--clr-bg-header);
+          flex-wrap: wrap;
+          gap: 14px;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div
+            style="
+              width: 40px;
+              height: 40px;
+              border-radius: var(--radius-md);
+              background: linear-gradient(135deg, var(--clr-teal), #0891b2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 4px 14px -2px rgba(13, 148, 136, 0.55);
+            "
+          >
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+            </svg>
+          </div>
+          <div>
+            <div
+              class="disp"
+              style="
+                font-size: 16.5px;
+                font-weight: 600;
+                color: #fff;
+                letter-spacing: -0.01em;
+                line-height: 1.2;
+              "
+            >
+              Rework Dashboard
+            </div>
+            <div style="font-size: 11px; color: #8b98ab; margin-top: 1px">
+              Quality control tracker
+            </div>
+          </div>
+          <span
+            id="footerTime"
+            class="mono"
+            style="
+              font-size: 12px;
+              font-weight: 500;
+              padding: 4px 10px;
+              border-radius: var(--radius-full);
+              background: rgba(45, 212, 191, 0.12);
+              color: #5eead4;
+              margin-left: 4px;
+            "
+            >—</span
+          >
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div
+            id="searchBox"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(255, 255, 255, 0.06);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: var(--radius-md);
+              padding: 0 12px;
+              height: 38px;
+              transition:
+                border-color 0.15s,
+                box-shadow 0.15s;
+            "
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#8b98ab"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search records…"
+              oninput="filterTable()"
+              style="
+                border: none;
+                background: transparent;
+                font-size: 13px;
+                color: #e8ecf1;
+                outline: none;
+                width: 180px;
+                font-family: &quot;Inter&quot;, sans-serif;
+              "
+            />
+          </div>
+          <button
+            onclick="loadData()"
+            id="refreshBtn"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              font-size: 13px;
+              font-weight: 500;
+              padding: 0 16px;
+              height: 38px;
+              border: 1px solid rgba(255, 255, 255, 0.12);
+              border-radius: var(--radius-md);
+              background: rgba(255, 255, 255, 0.06);
+              color: #e8ecf1;
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            <svg
+              id="refreshIcon"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M23 4v6h-6" />
+              <path d="M1 20v-6h6" />
+              <path
+                d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+              />
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Stats ── -->
+      <div
+        id="statsRow"
+        style="
+          display: none;
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          gap: 12px;
+          padding: 18px 28px;
+          background: var(--clr-bg-stats);
+          border-bottom: 1px solid var(--clr-border);
+        "
+      >
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--clr-teal);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--clr-text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              Total Records
+            </div>
+          </div>
+          <div
+            id="statTotal"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: var(--clr-teal-dark);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--clr-amber);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--clr-text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              Rework Qty
+            </div>
+          </div>
+          <div
+            id="statQty"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: var(--clr-amber-text);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--clr-indigo);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--clr-text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              JRC Total
+            </div>
+          </div>
+          <div
+            id="statJRC"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: var(--clr-indigo-text);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--clr-rose);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--clr-text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              Processes
+            </div>
+          </div>
+          <div
+            id="statProc"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: var(--clr-rose-text);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--clr-rose);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--clr-text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              Total Time
+            </div>
+          </div>
+          <div
+            id="TotalTime"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: var(--clr-rose-text);
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Table ── -->
+      <div style="overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+          <thead>
+            <tr
+              style="
+                background: var(--clr-bg-table-head);
+                border-bottom: 1px solid var(--clr-border);
+              "
+            >
+              <th style="width: 26px; padding: 12px 0 12px 16px"></th>
+              <th
+                onclick="sortTable('Rework_NO')"
+                id="th-Rework_NO"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Rework No <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Date')"
+                id="th-Date"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Date <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Hold_No')"
+                id="th-Hold_No"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Hold No <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Process')"
+                id="th-Process"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Process <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Item_Code')"
+                id="th-Item_Code"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Item Code <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('JRC_Total')"
+                id="th-JRC_Total"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                JRC Total <span class="arrow">↕</span>
+              </th>
+              <th
+                onclick="sortTable('Rework Qty')"
+                id="th-Rework Qty"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Rework Qty <span class="arrow">↕</span>
+              </th>
+
+              <th
+                id="th-TotalTimeCol"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Total Time
+              </th>
+
+              <th
+                onclick="sortTable('Status')"
+                id="th-Status"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--clr-text-th);
+                  padding: 12px 16px;
+                  text-align: left;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                Status <span class="arrow">↕</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="9">
+                <div
+                  style="
+                    text-align: center;
+                    padding: 56px 16px;
+                    color: var(--clr-text-muted);
+                  "
+                >
+                  <svg
+                    width="36"
+                    height="36"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--clr-teal)"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="display: block; margin: 0 auto 14px"
+                    class="spin"
+                  >
+                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                  </svg>
+                  <p style="font-size: 13.5px">Fetching data…</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Footer ── -->
+      <div
+        style="
+          padding: 12px 28px;
+          border-top: 1px solid var(--clr-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 12px;
+          color: var(--clr-text-muted);
+        "
+      >
+        <span id="footerCount">—</span>
+        <span style="display: flex; align-items: center; gap: 6px">
+          <span
+            class="pulse-dot"
+            style="
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background: var(--clr-teal);
+            "
+          ></span>
+          Live feed
+        </span>
+      </div>
+    </div>
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
+
+      // NEW: Verification data endpoint (same Apps Script, different action)
+      const VERIFICATION_API_URL =
+        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=verifactiondata";
+
+      /* ── Process badge color cycling ── */
+      const PROCESS_COLORS = ["p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+      const processMap = {};
+      let colorIdx = 0;
+
+      function getPC(p) {
+        if (!p) return "p7";
+        if (!processMap[p])
+          processMap[p] = PROCESS_COLORS[colorIdx++ % PROCESS_COLORS.length];
+        return processMap[p];
+      }
+
+      function pcStyle(c) {
+        const m = {
+          p0: "background:var(--clr-p0-bg);color:var(--clr-p0-text)",
+          p1: "background:var(--clr-p1-bg);color:var(--clr-p1-text)",
+          p2: "background:var(--clr-p2-bg);color:var(--clr-p2-text)",
+          p3: "background:var(--clr-p3-bg);color:var(--clr-p3-text)",
+          p4: "background:var(--clr-p4-bg);color:var(--clr-p4-text)",
+          p5: "background:var(--clr-p5-bg);color:var(--clr-p5-text)",
+          p6: "background:var(--clr-p6-bg);color:var(--clr-p6-text)",
+          p7: "background:var(--clr-p7-bg);color:var(--clr-p7-text)",
+        };
+        return (
+          (m[c] || m.p7) +
+          ";display:inline-block;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:var(--radius-full);"
+        );
+      }
+
+      function statusStyle(s) {
+        const v = String(s || "").toLowerCase();
+        if (v.includes("close") || v.includes("complete") || v.includes("ok"))
+          return "background:var(--clr-teal-bg);color:var(--clr-teal-text);";
+        if (
+          v.includes("pending") ||
+          v.includes("progress") ||
+          v.includes("open")
+        )
+          return "background:var(--clr-amber-bg);color:var(--clr-amber-text);";
+        if (v.includes("reject") || v.includes("fail") || v.includes("not ok"))
+          return "background:var(--clr-rose-bg);color:var(--clr-rose-text);";
+        return "background:#f1f5f9;color:#64748b;";
+      }
+
+      let allData = [],
+        sortKey = null,
+        sortAsc = true,
+        expandedIdx = null;
+
+      // NEW: builds the composite join key Hold_No + "||" + Rework_No
+      function makeKey(holdNo, reworkNo) {
+        return (
+          String(holdNo ?? "")
+            .trim()
+            .toLowerCase() +
+          "||" +
+          String(reworkNo ?? "")
+            .trim()
+            .toLowerCase()
+        );
+      }
+
+      /* ── Load Data ── */
+      async function loadData() {
+        const tbody = document.getElementById("tableBody");
+        const icon = document.getElementById("refreshIcon");
+        icon.classList.add("spin");
+        document.getElementById("statsRow").style.display = "none";
+        expandedIdx = null;
+        tbody.innerHTML = `<tr><td colspan="9">
+        <div style="text-align:center;padding:56px 16px;color:var(--clr-text-muted);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--clr-teal)" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 14px;" class="spin">
+              <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
+            <p style="font-size:13.5px;">Fetching data…</p>
+        </div></td></tr>`;
+        try {
+          // NEW: fetch both APIs in parallel
+          const [reworkRes, verificationRes] = await Promise.all([
+            fetch(API_URL),
+            fetch(VERIFICATION_API_URL),
+          ]);
+          const reworkJson = await reworkRes.json();
+          const verificationJson = await verificationRes.json();
+
+          const reworkData =
+            reworkJson.data && reworkJson.data.length ? reworkJson.data : [];
+          const verificationData =
+            verificationJson.data && verificationJson.data.length
+              ? verificationJson.data
+              : [];
+
+          console.log("Rework records fetched:", reworkData.length);
+          console.log("Verification records fetched:", verificationData.length);
+
+          // NEW: build a lookup map keyed by Hold_No + "||" + Rework_No
+          const verificationMap = {};
+          verificationData.forEach((v) => {
+            const key = makeKey(v.Hold_No, v.Rework_No);
+            if (!verificationMap[key]) verificationMap[key] = [];
+            verificationMap[key].push(v);
+          });
+
+          // NEW: attach matching verification record(s) to each rework record
+          let matchedCount = 0;
+          reworkData.forEach((r) => {
+            const key = makeKey(r.Hold_No, r.Rework_NO);
+            const match = verificationMap[key] || [];
+            r.verification = match; // e.g. item.verification
+            if (match.length) {
+              matchedCount++;
+              console.log(
+                `✅ Matched verification for Hold_No="${r.Hold_No}" Rework_NO="${r.Rework_NO}" (key="${key}")`,
+                match,
+              );
+            } else {
+              console.log(
+                `⛔ No verification match for Hold_No="${r.Hold_No}" Rework_NO="${r.Rework_NO}" (key="${key}")`,
+              );
+            }
+          });
+          console.log(
+            `Verification matching complete: ${matchedCount}/${reworkData.length} rework records matched.`,
+          );
+
+          allData = reworkData;
+
+          if (!allData.length) {
+            tbody.innerHTML = `<tr><td colspan="9"><div style="text-align:center;padding:56px 16px;color:var(--clr-text-muted);"><p style="font-size:13.5px;">No records found.</p></div></td></tr>`;
+            document.getElementById("footerCount").textContent = "0 records";
+          } else {
+            updateStats(allData);
+            document.getElementById("statsRow").style.display = "grid";
+            renderTable(allData);
+          }
+        } catch (e) {
+          console.error("Error loading dashboard data:", e);
+          tbody.innerHTML = `<tr><td colspan="9"><div style="text-align:center;padding:56px 16px;"><p style="font-size:13.5px;color:var(--clr-rose);">Could not load data. Please refresh.</p></div></td></tr>`;
+          document.getElementById("footerCount").textContent = "Load failed";
+        } finally {
+          icon.classList.remove("spin");
+        }
+      }
+
+      function updateFooterTime() {
+        const now = new Date();
+        document.getElementById("footerTime").textContent =
+          "● " +
+          now.toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+      }
+      updateFooterTime();
+      setInterval(updateFooterTime, 1000);
+
+      /* ── Total rework minutes for a single record (sums Rewk-Min_1..6) ── */
+      function getRecordTotalMinutes(item) {
+        return [1, 2, 3, 4, 5, 6].reduce(
+          (sum, i) => sum + (Number(item[`Rewk-Min_${i}`]) || 0),
+          0,
+        );
+      }
+
+      /* ── Total rework minutes across a whole dataset ── */
+      function computeTotalMinutes(data) {
+        return data.reduce((sum, r) => sum + getRecordTotalMinutes(r), 0);
+      }
+
+      /* ── Stats ── */
+      function updateStats(data) {
+        const qty = data.reduce(
+          (a, r) => a + (parseFloat(r["Rework Qty"]) || 0),
+          0,
+        );
+        const jrc = data.reduce(
+          (a, r) => a + (parseFloat(r.JRC_Total) || 0),
+          0,
+        );
+        const proc = new Set(data.map((r) => r.Process).filter(Boolean)).size;
+
+        const totalMin = computeTotalMinutes(data);
+        const th = Math.floor(totalMin / 60);
+        const tm = totalMin % 60;
+
+        document.getElementById("statTotal").textContent = data.length;
+        document.getElementById("statQty").textContent =
+          Math.round(qty).toLocaleString();
+        document.getElementById("statJRC").textContent =
+          Math.round(jrc).toLocaleString();
+        document.getElementById("statProc").textContent = proc;
+        document.getElementById("TotalTime").textContent = `${th}h ${tm}m`;
+      }
+
+      /* ── Defect detail block builder ── */
+      function buildDefectHTML(row) {
+        const fields = [
+          ["Defect", "Defect_"],
+          ["Qty", "Qty_"],
+          ["ORP", "ORP_"],
+          ["Observation", "Obs_"],
+          ["Solution", "Solution_"],
+          ["OK", "OK_"],
+          ["Not OK", "NotOK_"],
+          ["Rework Obs", "ReworkObs_"],
+          ["Check By", "CheckBy_"],
+          ["Rework By", "ReworkBy_"],
+          ["Rework Min", "Rewk-Min_"],
+          ["Rework Date & Time", "Rewk-Date&Time_"],
+        ];
+        let cards = "";
+        let count = 0;
+        for (let i = 1; i <= 6; i++) {
+          const defectVal = row[`Defect_${i}`];
+          if (!defectVal || String(defectVal).trim() === "") continue;
+          count++;
+
+          const defectMin = Number(row[`Rewk-Min_${i}`]) || 0;
+          const dHrs = Math.floor(defectMin / 60);
+          const dMin = defectMin % 60;
+
+          let fieldsHtml = fields
+            .map(([label, prefix]) => {
+              const v = row[`${prefix}${i}`];
+              if (v === undefined || v === null || String(v).trim() === "")
+                return "";
+              return `<div class="defect-field"><span class="lbl">${label}</span><span class="val">${v}</span></div>`;
+            })
+            .join("");
+          cards += `
+            <div class="defect-card" style="margin-bottom:10px;">
+              <div class="defect-card-head-row">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--clr-amber-text);background:var(--clr-amber-bg);padding:2px 9px;border-radius:var(--radius-full);">DEFECT ${i}</span>
+                <span class="mono" style="font-size:10.5px;font-weight:700;color:var(--clr-teal-text);background:var(--clr-teal-bg);padding:2px 9px;border-radius:var(--radius-full);">Time: ${dHrs}h ${dMin}m</span>
+              </div>
+              <div class="defect-grid">
+                ${fieldsHtml}
+              </div>
+            </div>`;
+        }
+        if (count === 0) {
+          return `<div style="padding:18px 4px;color:var(--clr-text-muted);font-size:13px;text-align:center;">No defect entries recorded for this rework.</div>`;
+        }
+        return cards;
+      }
+
+      /* ── Verification detail block builder ── */
+      function buildVerificationHTML(verificationArr) {
+        if (!verificationArr || !verificationArr.length) {
+          return `<div style="padding:18px 4px;color:var(--clr-text-muted);font-size:13px;text-align:center;">No verification data found.</div>`;
+        }
+
+        const fields = [
+          ["Verified ID", "Verified_ID"],
+          ["QC No", "QC_No"],
+          ["Inspection By", "Inspection_By"],
+          ["OK Qty", "Ok Qty"],
+          ["Not OK Qty", "Not_Ok"],
+          ["Verification Status", "Status"],
+          ["Verified Action", "Verified_Action"],
+          ["Submit Date & Time", "Submit Date&Time"],
+          ["Verification Date & Time", "Verification_DateTime"],
+        ];
+
+        return verificationArr
+          .map((v, i) => {
+            const fieldsHtml = fields
+              .map(([label, key]) => {
+                const val = v[key];
+                if (
+                  val === undefined ||
+                  val === null ||
+                  String(val).trim() === ""
+                )
+                  return "";
+                return `<div class="defect-field"><span class="lbl">${label}</span><span class="val">${val}</span></div>`;
+              })
+              .join("");
+
+            return `
+              <div class="defect-card verification-card" style="margin-bottom:10px;">
+                <div class="defect-card-head-row">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--clr-indigo-text);background:var(--clr-indigo-bg);padding:2px 9px;border-radius:var(--radius-full);">VERIFICATION${verificationArr.length > 1 ? " " + (i + 1) : ""}</span>
+                </div>
+                <div class="defect-grid">
+                  ${fieldsHtml}
+                </div>
+              </div>`;
+          })
+          .join("");
+      }
+
+      /* ── Render Table ── */
+      function renderTable(data) {
+        const tbody = document.getElementById("tableBody");
+        if (!data.length) {
+          tbody.innerHTML = `<tr><td colspan="9"><div style="text-align:center;padding:56px 16px;color:var(--clr-text-muted);"><p style="font-size:13.5px;">No matching records.</p></div></td></tr>`;
+          document.getElementById("footerCount").textContent = "0 records";
+          return;
+        }
+        tbody.innerHTML = data
+          .map((item, i) => {
+            const idx = allData.indexOf(item);
+            const qty = item["Rework Qty"];
+
+            const totalReworkMin = getRecordTotalMinutes(item);
+            const hours = Math.floor(totalReworkMin / 60);
+            const minutes = totalReworkMin % 60;
+
+            const qtyHtml = qty
+              ? `<span style="display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:var(--radius-full);background:var(--clr-amber-bg);color:var(--clr-amber-dark);font-family:'JetBrains Mono',monospace;">${qty}</span>`
+              : `<span style="color:#d1d5db;font-size:13px;">—</span>`;
+            const pc = getPC(item.Process);
+            const isExpanded = expandedIdx === idx;
+            const statusHtml = item.Status
+              ? `<span class="status-pill" style="${statusStyle(item.Status)}">${item.Status}</span>`
+              : `<span style="color:#d1d5db;font-size:13px;">—</span>`;
+            const row = `
+<tr class="data-row${isExpanded ? " expanded" : ""}" id="row-${idx}" onclick="toggleDetails(${idx})">
+    <td class="mono" style="padding:12px 0 12px 16px;color:var(--clr-teal);">
+        <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </td>
+    <td class="mono mobile-label" data-label="Rework No" style="padding:12px 16px;font-size:11.5px;color:var(--clr-indigo);font-weight:600;">${item.Rework_NO || "—"}</td>
+    <td class="mobile-label" data-label="Date" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Date || "—"}</td>
+    <td class="mobile-label" data-label="Hold No" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Hold_No || "—"}</td>
+    <td class="mobile-label" data-label="Process" style="padding:12px 16px;"><span style="${pcStyle(pc)}">${item.Process || "—"}</span></td>
+    <td class="mobile-label" data-label="Item Code" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Item_Code || "—"}</td>
+    <td class="mobile-label" data-label="JRC Total" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.JRC_Total || "—"}</td>
+    <td class="mobile-label" data-label="Rework Qty" style="padding:12px 16px;">${qtyHtml}</td>
+    <td class="mobile-label" data-label="Total Time" style="padding:12px 16px;color:var(--clr-text-secondary);">${hours}h ${minutes}m</td>
+    <td class="mobile-label formating" data-label="Status" style="padding:12px 16px;">${item.Status || "-"}</td>
+</tr>`;
+            const detailRow = `
+<tr class="detail-row">
+    <td colspan="10">
+        <div class="detail-wrap${isExpanded ? " open" : ""}" id="wrap-${idx}">
+          <div class="detail-wrap-inner">
+            <div class="detail-content">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--clr-text-muted);">
+                        Defect Details — ${item.Rework_NO || ""}
+                    </div>
+                    <div class="mono" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);background:var(--clr-indigo-bg);color:var(--clr-indigo-text);">
+                        Total Rework Time: ${hours}h ${minutes}m
+                    </div>
+                </div>
+                ${buildDefectHTML(item)}
+
+                <!-- Verification Details -->
+                <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--clr-text-muted);margin-top:18px;margin-bottom:10px;">
+                    Verification Details
+                </div>
+                ${buildVerificationHTML(item.verification)}
+            </div>
+          </div>
+        </div>
+    </td>
+</tr>`;
+            return row + detailRow;
+          })
+          .join("");
+        document.getElementById("footerCount").textContent =
+          data.length + " record" + (data.length !== 1 ? "s" : "");
+      }
+
+      function toggleDetails(idx) {
+        const wasOpen = expandedIdx === idx;
+
+        // Close whichever row is currently open (if any)
+        if (expandedIdx !== null) {
+          const prevWrap = document.getElementById("wrap-" + expandedIdx);
+          const prevRow = document.getElementById("row-" + expandedIdx);
+          if (prevWrap) prevWrap.classList.remove("open");
+          if (prevRow) prevRow.classList.remove("expanded");
+        }
+
+        if (wasOpen) {
+          expandedIdx = null;
+          return;
+        }
+
+        expandedIdx = idx;
+        const wrap = document.getElementById("wrap-" + idx);
+        const row = document.getElementById("row-" + idx);
+        if (row) row.classList.add("expanded");
+        if (wrap) {
+          // next frame so the browser registers the closed state first, then animates open
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => wrap.classList.add("open")),
+          );
+        }
+      }
+
+      function getSorted() {
+        return [...allData].sort((a, b) => {
+          const va = a[sortKey] || "",
+            vb = b[sortKey] || "";
+          const na = parseFloat(va),
+            nb = parseFloat(vb);
+          const c =
+            !isNaN(na) && !isNaN(nb)
+              ? na - nb
+              : String(va).localeCompare(String(vb));
+          return sortAsc ? c : -c;
+        });
+      }
+
+      /* ── Search ── */
+      function filterTable() {
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        const base = sortKey ? getSorted() : allData;
+        renderTable(
+          base.filter((r) =>
+            Object.values(r).some((v) => String(v).toLowerCase().includes(q)),
+          ),
+        );
+      }
+
+      /* ── Sort ── */
+      function sortTable(key) {
+        document.querySelectorAll("th").forEach((t) => {
+          t.classList.remove("sorted");
+          const a = t.querySelector(".arrow");
+          if (a) a.textContent = "↕";
+        });
+        const th = document.getElementById("th-" + key);
+        if (sortKey === key) sortAsc = !sortAsc;
+        else {
+          sortKey = key;
+          sortAsc = true;
+        }
+        if (th) {
+          th.classList.add("sorted");
+          const a = th.querySelector(".arrow");
+          if (a) a.textContent = sortAsc ? "↑" : "↓";
+        }
+        const sorted = getSorted();
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        renderTable(
+          q
+            ? sorted.filter((r) =>
+                Object.values(r).some((v) =>
+                  String(v).toLowerCase().includes(q),
+                ),
+              )
+            : sorted,
+        );
+      }
+
+      /* ── Init ── */
+      loadData();
+    </script>
+  </body>
+</html>
