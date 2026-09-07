@@ -140,8 +140,20 @@
         border-bottom: none !important;
       }
 
+      /* .detail-wrap {
+        display: grid;
+        grid-template-rows: 0fr;
+        background: var(--clr-bg-expand);
+        transition: grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+      } */
+
       .detail-wrap {
         display: grid;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
         grid-template-rows: 0fr;
         background: var(--clr-bg-expand);
         transition: grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1);
@@ -152,20 +164,43 @@
         border-bottom: 1px solid var(--clr-border);
       }
 
-      .detail-wrap-inner {
+      /* .detail-wrap-inner {
         overflow: hidden;
         min-height: 0;
-      }
+      } */
 
+      .detail-wrap-inner {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        min-height: 0;
+        box-sizing: border-box;
+      }
       /* Padding now lives here (was inline before) so it can be
        responsively reduced on tablet/mobile via media queries below —
        fixes the expanded panel not fitting properly on narrow screens. */
-      .detail-content {
+      /* .detail-content {
         opacity: 0;
         transform: translateY(-6px);
         transition:
           opacity 0.2s ease,
           transform 0.25s ease;
+        padding: 18px 22px 22px 54px;
+      } */
+
+      .detail-content {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        opacity: 0;
+        transform: translateY(-6px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.25s ease;
+
         padding: 18px 22px 22px 54px;
       }
 
@@ -1344,7 +1379,7 @@
 </tr>`;
             const detailRow = `
 <tr class="detail-row">
-    <td colspan="9">
+    <td colspan="10">
         <div class="detail-wrap${isExpanded ? " open" : ""}" id="wrap-${idx}">
           <div class="detail-wrap-inner">
             <div class="detail-content">
