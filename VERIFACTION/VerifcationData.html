@@ -1124,8 +1124,8 @@
         "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
 
       // NEW: Verification data endpoint (same Apps Script, different action)
-      const VERIFICATION_API_URL =
-        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=verifactiondata";
+       const VERIFICATION_API_URL =
+      "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=verifactiondata";
 
       /* ── Process badge color cycling ── */
       const PROCESS_COLORS = ["p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
@@ -1209,6 +1209,7 @@
 
           const reworkData =
             reworkJson.data && reworkJson.data.length ? reworkJson.data : [];
+
           const verificationData =
             verificationJson.data && verificationJson.data.length
               ? verificationJson.data
@@ -1220,27 +1221,22 @@
           // NEW: build a lookup map keyed by Hold_No + "||" + Rework_No
           const verificationMap = {};
           verificationData.forEach((v, i) => {
+            console.log(v);
             const key = makeKey(v.Hold_No);
-            // console.log(i, "VerifactionData", v);
-            console.log(v.Hold_No,"VerifactionKey------------------------", key);
-            console.log(verificationMap, "verifactionMap");
+            // console.log(!verificationMap[key]);
             if (!verificationMap[key]) verificationMap[key] = [];
             verificationMap[key].push(v);
           });
-          console.log(verificationMap, "afterifcondtionverifactionMap");
-
-          
 
           // NEW: attach matching verification record(s) to each rework record
           let matchedCount = 0;
           reworkData.forEach((r, i) => {
+            console.log(r);
             const key = makeKey(r.Hold_No);
             // console.log(i, "ReworkData", r);
 
             const match = verificationMap[key] || [];
-            // console.log("ReworkDataKey------------------------", key);
-            // console.log(match, "----------------------Match");
-            // console.log("---------------verifactonMap", verificationMap);
+
             r.verification = match; // e.g. item.verification
             if (match.length) {
               matchedCount++;
@@ -1451,6 +1447,7 @@
         }
         tbody.innerHTML = data
           .map((item, i) => {
+            console.log(item, "RenderData");
             const idx = allData.indexOf(item);
             const qty = item["Rework Qty"];
 
@@ -1484,7 +1481,7 @@
                     <td class="mobile-label formating " data-label="Status" style="padding:12px 0px; text-align:right;">
                         <span style="
                   display:inline-block;
-                  padding:4px 12px;
+                  padding:2px 6px;
                   border-radius:9999px;
                   font-size:12px;
                   font-weight:700;
@@ -1515,7 +1512,8 @@
 
                       <!-- Verification Details -->
                       <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--clr-text-muted);margin-top:18px;margin-bottom:10px;">
-                          Verification Details
+                       Verification Details - ${item.verification[0]?.Verified_ID || "N/A"}
+                          
                       </div>
                       ${buildVerificationHTML(item.verification)}
                   </div>
