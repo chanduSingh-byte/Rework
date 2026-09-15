@@ -520,20 +520,168 @@
       #clock {
         color: #5e5d5a;
       }
+      .hold-dropdown {
+        position: relative;
+        width: 250px;
+      }
+
+      .hold-select-btn {
+        width: 100%;
+        height: 50px;
+        padding: 0 15px;
+        border: 2px solid #249b91;
+        border-radius: 12px;
+        background: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+        color: #53617a;
+        cursor: pointer;
+      }
+
+      .hold-select-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .hold-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 55px;
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #249b91;
+        border-radius: 12px;
+        padding: 12px;
+        z-index: 1000;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .hold-dropdown-menu.show {
+        display: block;
+      }
+
+      .hold-search {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+        margin-bottom: 8px;
+        box-sizing: border-box;
+      }
+
+      .hold-search:focus {
+        border-color: #249b91;
+      }
+
+      .hold-options {
+        max-height: 320px;
+        overflow-y: auto;
+      }
+
+      .hold-option {
+        padding: 12px 14px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        color: black;
+        border-radius: 6px;
+      }
+
+      .hold-option:hover {
+        background: #f1f7f6;
+      }
+
+      .hold-options::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .hold-options::-webkit-scrollbar-thumb {
+        background: #168b82;
+        border-radius: 10px;
+      }
     </style>
   </head>
 
   <body>
+    <!-- SUCCESS MODAL -->
+    <div class="modal-overlay" id="successModal">
+      <div class="modal-box">
+        <h3>Verification Successful</h3>
+
+        <p>Verification saved successfully.</p>
+
+        <div class="modal-summary">
+          <div>
+            <span>Hold No</span>
+            <strong id="successholdno">-</strong>
+          </div>
+
+          <div>
+            <span>Rework No</span>
+            <strong id="successReworkNo">-</strong>
+          </div>
+
+          <div>
+            <span>Verification No</span>
+            <strong id="successVerificationNo">-</strong>
+          </div>
+
+          <div>
+            <span>QC No</span>
+            <strong id="successqcno">-</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="modal-confirm"
+            onclick="closeSuccessModal()"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="topbar">
       <div class="headerLogo">
         <h1>Rework Verification</h1>
         <h1 id="clock"></h1>
       </div>
       <div class="hold-picker">
-        <label for="holdNoSelect">Hold number</label>
-        <select id="holdNoSelect" onchange="handleHoldSelection()">
-          <option value="">Loading hold numbers…</option>
-        </select>
+        <label>HOLD NO</label>
+
+        <div class="hold-dropdown">
+          <button
+            type="button"
+            class="hold-select-btn"
+            onclick="toggleHoldDropdown()"
+          >
+            <span id="selectedHoldText">Select Hold Card</span>
+            <!-- <span>⌃</span> -->
+          </button>
+
+          <div id="holdDropdownMenu" class="hold-dropdown-menu">
+            <input
+              type="text"
+              id="holdSearch"
+              class="hold-search"
+              placeholder="Search..."
+              oninput="filterHoldNumbers()"
+            />
+
+            <div id="holdOptions" class="hold-options">
+              <!-- Hold options yahan JS se aayenge -->
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -734,9 +882,6 @@
       const GAS_API_URL =
         "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
 
-      const savever =
-        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec";
-
       let fetchedReworkData = [];
       let selectedReworkData = null;
 
@@ -755,6 +900,15 @@
           el.addEventListener("input", () => validateField(id, false));
           el.addEventListener("blur", () => validateField(id, true));
           el.addEventListener("change", () => validateField(id, true));
+        });
+
+        // Click outside the hold dropdown closes it
+        document.addEventListener("click", (e) => {
+          const dropdown = document.querySelector(".hold-dropdown");
+          const menu = document.getElementById("holdDropdownMenu");
+          if (dropdown && menu && !dropdown.contains(e.target)) {
+            menu.classList.remove("show");
+          }
         });
       });
 
@@ -786,61 +940,144 @@
       setInterval(clock, 1000);
 
       async function loadReworkData() {
-        const select = document.getElementById("holdNoSelect");
+        const selectedHoldText = document.getElementById("selectedHoldText");
+        const holdOptions = document.getElementById("holdOptions");
+        const holdSelectBtn = document.querySelector(".hold-select-btn");
+
         try {
-          select.innerHTML = `<option value="">Loading hold numbers…</option>`;
+          holdOptions.innerHTML = "";
+          selectedHoldText.textContent = "Loading hold numbers…";
+          if (holdSelectBtn) holdSelectBtn.disabled = true;
 
           const response = await fetch(GAS_API_URL);
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
 
           const responseData = await response.json();
           fetchedReworkData = responseData.data || [];
-          if (!Array.isArray(fetchedReworkData))
+
+          if (!Array.isArray(fetchedReworkData)) {
             fetchedReworkData = [fetchedReworkData];
+          }
+
+          console.log(fetchedReworkData);
+
+          // Only Open status records
+          fetchedReworkData = fetchedReworkData.filter(
+            (record) =>
+              record.Status &&
+              String(record.Status).trim().toLowerCase() === "open",
+          );
+
+          selectedHoldText.textContent = "Select Hold Card";
 
           if (fetchedReworkData.length === 0) {
-            select.innerHTML = `<option value="">No hold numbers found</option>`;
+            holdOptions.innerHTML = `<div class="hold-option" style="cursor:default;color:var(--text-600);">No open hold numbers found</div>`;
             clearUI();
             return;
           }
 
-          select.innerHTML = `<option value="">Select hold number</option>`;
+          // Time difference calculate karne ke liye helper function
+          function getPendingDuration(recordDateStr) {
+            if (!recordDateStr) return "";
+
+            const recordDate = new Date(recordDateStr);
+            const now = new Date();
+
+            // Difference in milliseconds
+            const diffMs = now - recordDate;
+
+            if (isNaN(diffMs) || diffMs < 0) return "";
+
+            const diffMinutes = Math.floor(diffMs / (1000 * 60));
+            const days = Math.floor(diffMinutes / (60 * 24));
+            const hours = Math.floor((diffMinutes % (60 * 24)) / 60);
+            const minutes = diffMinutes % 60;
+
+            if (days > 0) {
+              return `${days}d ${hours}h pending`;
+            }
+            if (hours > 0) {
+              return `${hours}h ${minutes}m pending`;
+            }
+            return `${minutes}m pending`;
+          }
+
           fetchedReworkData.forEach((record) => {
             if (record.Hold_No && String(record.Hold_No).trim() !== "") {
-              const option = document.createElement("option");
-              option.value = record.Hold_No;
-              option.textContent = record.Hold_No;
-              select.appendChild(option);
+              const option = document.createElement("div");
+              option.className = "hold-option";
+
+              const duration = getPendingDuration(
+                record.Date || record.Created_Date || record.Created_DateTime,
+              );
+
+              option.innerHTML = `
+      <div style="font-weight:600;">
+        ${escapeHtml(record.Hold_No)}
+      </div>
+      <div style="font-size:12px; color:#d6402c; margin-top:3px;">
+        ${escapeHtml(duration)}
+      </div>
+    `;
+
+              option.onclick = () => selectHoldNumber(record.Hold_No, record);
+              holdOptions.appendChild(option);
             }
           });
 
           hideMessage();
         } catch (error) {
           console.error("Fetch error:", error);
-          select.innerHTML = `<option value="">Error loading hold numbers</option>`;
+
+          holdOptions.innerHTML = `<div class="hold-option" style="cursor:default;color:var(--accent-danger);">Error loading hold numbers</div>`;
+          selectedHoldText.textContent = "Select Hold Card";
+
           showMessage(
             "Couldn't load hold numbers. Check your connection and reload the page.",
             "error",
           );
+        } finally {
+          if (holdSelectBtn) holdSelectBtn.disabled = false;
         }
       }
 
-      function handleHoldSelection() {
-        const selectedHoldNo = document.getElementById("holdNoSelect").value;
+      function toggleHoldDropdown() {
+        const menu = document.getElementById("holdDropdownMenu");
+
+        menu.classList.toggle("show");
+
+        if (menu.classList.contains("show")) {
+          document.getElementById("holdSearch").focus();
+        }
+      }
+
+      function filterHoldNumbers() {
+        const search = document
+          .getElementById("holdSearch")
+          .value.toLowerCase()
+          .trim();
+
+        const options = document.querySelectorAll(".hold-option");
+
+        options.forEach((option) => {
+          const holdNo = option.textContent.toLowerCase();
+
+          option.style.display = holdNo.includes(search) ? "block" : "none";
+        });
+      }
+
+      function selectHoldNumber(holdNo, record) {
+        document.getElementById("selectedHoldText").textContent = holdNo;
+        document.getElementById("holdDropdownMenu").classList.remove("show");
+        document.getElementById("holdSearch").value = "";
+        filterHoldNumbers();
+
         hideMessage();
 
-        if (!selectedHoldNo) {
-          selectedReworkData = null;
-          clearUI();
-          updateSubmitState();
-          return;
-        }
-
-        const selectedRecord = fetchedReworkData.find(
-          (record) => String(record.Hold_No) === String(selectedHoldNo),
-        );
-
-        if (!selectedRecord) {
+        if (!record) {
           selectedReworkData = null;
           clearUI();
           showMessage("No data found for the selected hold number.", "error");
@@ -848,12 +1085,13 @@
           return;
         }
 
-        selectedReworkData = selectedRecord;
-        renderDataToUI(selectedRecord);
+        selectedReworkData = record;
+        renderDataToUI(record);
         updateSubmitState();
       }
 
       function renderDataToUI(data) {
+        console.log(data);
         document.getElementById("reworkNo").innerText = data.Rework_NO || "–";
         document.getElementById("reworkDate").innerText = data.Date || "–";
         document.getElementById("holdNo").innerText = data.Hold_No || "–";
@@ -889,7 +1127,7 @@
             addCell(row, data[`ORP_${i}`] || "-");
             addCell(row, data[`Obs_${i}`] || "-");
             addCell(row, data[`Solution_${i}`] || "-");
-            const ok = addCell(row, data[`OK_${i}`] || "-", "ok");
+            addCell(row, data[`OK_${i}`] || "-", "ok");
             addCell(row, data[`NotOK_${i}`] || "-", "notok");
             tableBody.appendChild(row);
           }
@@ -904,22 +1142,16 @@
 
       function addCell(row, value, chipType) {
         const cell = document.createElement("td");
-
         if (chipType && value !== "-" && value !== "") {
           const chip = document.createElement("span");
-
           chip.className =
             "qty-chip " + (chipType === "ok" ? "chip-ok" : "chip-notok");
-
           chip.textContent = value;
           cell.appendChild(chip);
         } else {
           cell.textContent = value ?? "-";
         }
-
         row.appendChild(cell);
-
-        return cell; // 👈 important
       }
 
       function clearUI() {
@@ -948,6 +1180,69 @@
       }
 
       /* ===== VALIDATION ===== */
+
+      function validateVerificationQty() {
+        if (!selectedReworkData) return false;
+
+        const userOkQty = Number(document.getElementById("okQty").value);
+        const userNotOkQty = Number(document.getElementById("notOkQty").value);
+
+        let actualOkQty = 0;
+        let actualNotOkQty = 0;
+
+        // Sum OK / Not OK from data
+        for (let i = 1; i <= 6; i++) {
+          const ok = Number(selectedReworkData[`OK_${i}`]) || 0;
+          const notOk = Number(selectedReworkData[`NotOK_${i}`]) || 0;
+
+          actualOkQty += ok;
+          actualNotOkQty += notOk;
+        }
+
+        console.log("Actual OK Qty:", actualOkQty);
+        console.log("Actual Not OK Qty:", actualNotOkQty);
+        console.log("User OK Qty:", userOkQty);
+        console.log("User Not OK Qty:", userNotOkQty);
+
+        const okGroup = document.getElementById("group-okQty");
+        const notOkGroup = document.getElementById("group-notOkQty");
+        const okError = document.getElementById("error-okQty");
+        const notOkError = document.getElementById("error-notOkQty");
+
+        let valid = true;
+
+        // Validate OK Qty
+        if (userOkQty !== actualOkQty) {
+          valid = false;
+          okGroup.classList.add("invalid");
+          okGroup.classList.remove("valid");
+
+          okError.textContent = `OK Qty mismatch. Expected ${actualOkQty}, but entered ${userOkQty}.`;
+
+          okError.style.display = "block";
+        } else {
+          okGroup.classList.remove("invalid");
+          okGroup.classList.add("valid");
+          okError.style.display = "none";
+        }
+
+        // Validate Not OK Qty
+        if (userNotOkQty !== actualNotOkQty) {
+          valid = false;
+          notOkGroup.classList.add("invalid");
+          notOkGroup.classList.remove("valid");
+
+          notOkError.textContent = `Not OK Qty mismatch. Expected ${actualNotOkQty}, but entered ${userNotOkQty}.`;
+
+          notOkError.style.display = "block";
+        } else {
+          notOkGroup.classList.remove("invalid");
+          notOkGroup.classList.add("valid");
+          notOkError.style.display = "none";
+        }
+
+        return valid;
+      }
 
       function validateField(id, showError) {
         const el = document.getElementById(id);
@@ -1030,70 +1325,6 @@
         return allValid;
       }
 
-      function validateDefectQtyMatch() {
-        if (!selectedReworkData) {
-          return {
-            valid: false,
-            message: "Please select a hold number.",
-          };
-        }
-
-        let defectOkQty = 0;
-        let defectNotOkQty = 0;
-
-        // Calculate total OK / Not OK from defects
-        for (let i = 1; i <= 6; i++) {
-          const defectName = selectedReworkData[`Defect_${i}`];
-
-          if (defectName && String(defectName).trim() !== "") {
-            defectOkQty += Number(selectedReworkData[`OK_${i}`]) || 0;
-            defectNotOkQty += Number(selectedReworkData[`NotOK_${i}`]) || 0;
-          }
-        }
-
-        // Verification quantities
-        const verificationOkQty = Number(
-          document.getElementById("okQty").value,
-        );
-
-        const verificationNotOkQty = Number(
-          document.getElementById("notOkQty").value,
-        );
-
-        console.log("========== QTY VALIDATION ==========");
-        console.log("Defect OK Qty:", defectOkQty);
-        console.log("Verification OK Qty:", verificationOkQty);
-        console.log("Defect Not OK Qty:", defectNotOkQty);
-        console.log("Verification Not OK Qty:", verificationNotOkQty);
-        console.log("====================================");
-
-        // OK quantity mismatch
-        if (defectOkQty !== verificationOkQty) {
-          return {
-            valid: false,
-            message:
-              `OK Qty mismatch. Defect OK Qty = ${defectOkQty}, ` +
-              `Verification OK Qty = ${verificationOkQty}.`,
-          };
-        }
-
-        // Not OK quantity mismatch
-        if (defectNotOkQty !== verificationNotOkQty) {
-          return {
-            valid: false,
-            message:
-              `Not OK Qty mismatch. Defect Not OK Qty = ${defectNotOkQty}, ` +
-              `Verification Not OK Qty = ${verificationNotOkQty}.`,
-          };
-        }
-
-        // Both matched
-        return {
-          valid: true,
-          message: "OK and Not OK quantities matched.",
-        };
-      }
-
       function updateSubmitState() {
         const submitBtn = document.getElementById("submitBtn");
         const footnote = document.getElementById("footnote");
@@ -1129,7 +1360,6 @@
           return;
         }
 
-        // 1. Normal form validation
         const allValid = validateAll(true);
 
         if (!allValid) {
@@ -1137,79 +1367,35 @@
           return;
         }
 
-        // 2. Defect Qty vs Verification Qty validation
-        const qtyValidation = validateDefectQtyMatch();
+        // Verify OK / Not OK quantity with actual data
+        const qtyValid = validateVerificationQty();
 
-        if (!qtyValidation.valid) {
-          showMessage(qtyValidation.message, "error");
+        if (!qtyValid) {
+          showMessage(
+            "Verification OK Qty / Not OK Qty does not match the actual quantity.",
+            "error",
+          );
           return;
         }
 
-        // 3. Everything matched → open confirmation modal
         hideMessage();
 
         const qcNumber = document.getElementById("qcNumber").value.trim();
-
         const inspection = document.getElementById("inspection").value;
-
         const okQty = document.getElementById("okQty").value.trim();
-
         const notOkQty = document.getElementById("notOkQty").value.trim();
-
         const status = document.getElementById("statusSelect").value;
 
         const summary = document.getElementById("modalSummary");
-
         summary.innerHTML = `
-        <div>
-            <span>Hold no</span>
-            <strong>
-                ${escapeHtml(selectedReworkData.Hold_No)}
-            </strong>
-        </div>
-
-        <div>
-            <span>Rework no</span>
-            <strong>
-                ${escapeHtml(selectedReworkData.Rework_NO)}
-            </strong>
-        </div>
-
-        <div>
-            <span>Inspection by</span>
-            <strong>
-                ${escapeHtml(inspection)}
-            </strong>
-        </div>
-
-        <div>
-            <span>QC number</span>
-            <strong>
-                ${escapeHtml(qcNumber)}
-            </strong>
-        </div>
-
-        <div>
-            <span>OK Qty</span>
-            <strong>
-                ${escapeHtml(okQty)}
-            </strong>
-        </div>
-
-        <div>
-            <span>Not OK Qty</span>
-            <strong>
-                ${escapeHtml(notOkQty)}
-            </strong>
-        </div>
-
-        <div>
-            <span>Status</span>
-            <strong>
-                ${escapeHtml(status)}
-            </strong>
-        </div>
-    `;
+                      <div><span>Hold no</span><strong>${escapeHtml(selectedReworkData.Hold_No)}</strong></div>
+                      <div><span>Rework no</span><strong>${escapeHtml(selectedReworkData.Rework_NO)}</strong></div>
+                      <div><span>Inspection by</span><strong>${escapeHtml(inspection)}</strong></div>
+                      <div><span>QC number</span><strong>${escapeHtml(qcNumber)}</strong></div>
+                      <div><span>OK Qty</span><strong>${escapeHtml(okQty)}</strong></div>
+                      <div><span>Not OK Qty</span><strong>${escapeHtml(notOkQty)}</strong></div>
+                      <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
+                    `;
 
         document.getElementById("confirmModal").classList.add("open");
       }
@@ -1243,6 +1429,7 @@
 
         const payload = {
           action: "VERIFACTION",
+
           Hold_No: selectedReworkData.Hold_No,
           Rework_NO: selectedReworkData.Rework_NO,
           Status: status,
@@ -1260,18 +1447,36 @@
         submitBtn.textContent = "Submitting…";
 
         try {
-          const response = await fetch(savever, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload),
-          });
-
-          await response.text();
-
-          showMessage(
-            `Verified — Hold ${payload.Hold_No}, Rework ${payload.Rework_NO}, OK: ${payload.OK_Qty}, Not OK: ${payload.NotOK_Qty}, Status: ${payload.Status}, QC: ${payload.QC_Number}.`,
-            "success",
+          const response = await fetch(
+            "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec",
+            {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload),
+            },
           );
+
+          const result = await response.json();
+
+          if (!result.success) {
+            throw new Error(result.message || "Verification failed.");
+          }
+
+          showMessage("Verification submitted successfully.", "success");
+          loadReworkData();
+          // Open modal with Rework No + Verification No
+          openSuccessModal(result);
+          selectedReworkData = null;
+
+          // Reset Hold Number dropdown label
+          document.getElementById("selectedHoldText").textContent =
+            "Select Hold Card";
+
+          // Clear all screen data and form
+          clearUI();
+
+          // Update submit button
+          updateSubmitState();
         } catch (error) {
           console.error("Submit error:", error);
           showMessage(
@@ -1282,6 +1487,32 @@
           submitBtn.textContent = "Verify & submit";
           updateSubmitState();
         }
+      }
+    </script>
+
+    <script>
+      // ============================================
+      // SUCCESS MODAL
+      // ============================================
+
+      function openSuccessModal(result) {
+        document.getElementById("successReworkNo").textContent =
+          result.data?.Rework_NO || "-";
+
+        document.getElementById("successVerificationNo").textContent =
+          result.verificationNo || "-";
+
+        document.getElementById("successholdno").textContent =
+          result.data?.Hold_No || "-";
+
+        document.getElementById("successqcno").textContent =
+          result.data?.QC_Number || "-";
+
+        document.getElementById("successModal").classList.add("open");
+      }
+
+      function closeSuccessModal() {
+        document.getElementById("successModal").classList.remove("open");
       }
     </script>
   </body>

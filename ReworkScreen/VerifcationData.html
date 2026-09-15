@@ -142,6 +142,11 @@
 
       .detail-wrap {
         display: grid;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
         grid-template-rows: 0fr;
         background: var(--clr-bg-expand);
         transition: grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1);
@@ -153,19 +158,26 @@
       }
 
       .detail-wrap-inner {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         overflow: hidden;
         min-height: 0;
+        box-sizing: border-box;
       }
 
-      /* Padding now lives here (was inline before) so it can be
-       responsively reduced on tablet/mobile via media queries below —
-       fixes the expanded panel not fitting properly on narrow screens. */
       .detail-content {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
         opacity: 0;
         transform: translateY(-6px);
         transition:
           opacity 0.2s ease,
           transform 0.25s ease;
+
         padding: 18px 22px 22px 54px;
       }
 
@@ -310,6 +322,11 @@
         background: var(--clr-amber);
       }
 
+      /* NEW: verification cards reuse .defect-card but with an indigo accent */
+      .verification-card::before {
+        background: var(--clr-indigo);
+      }
+
       /* Responsive defect grid: 3 cols desktop → 2 cols tablet → 1 col mobile,
        so field labels/values never get cramped or overflow the card. */
       .defect-grid {
@@ -342,10 +359,6 @@
         min-width: 0;
       }
 
-      /* On narrow phones, stack label above value instead of squeezing
-       both into a fixed 118px + 1fr row. Without this the label/value
-       text can get crushed to near-zero width and effectively vanish,
-       leaving only the border-bottom line visible. */
       @media (max-width: 480px) {
         .defect-field {
           grid-template-columns: 1fr;
@@ -435,9 +448,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        /* min-width: 90px; */
         height: 52px;
-        /* background: #fee2e2; */
         color: #ef1d1d;
         font-weight: 600;
         border-radius: 16px;
@@ -875,7 +886,6 @@
               Total Time
             </div>
           </div>
-          <!-- Now populated by updateStats() -> computeTotalMinutes() -->
           <div
             id="TotalTime"
             class="disp"
@@ -1113,6 +1123,10 @@
       const API_URL =
         "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
 
+      // NEW: Verification data endpoint (same Apps Script, different action)
+       const VERIFICATION_API_URL =
+      "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=verifactiondata";
+
       /* ── Process badge color cycling ── */
       const PROCESS_COLORS = ["p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
       const processMap = {};
@@ -1162,6 +1176,13 @@
         sortAsc = true,
         expandedIdx = null;
 
+      // NEW: builds the composite join key Hold_No + "||" + Rework_No
+      function makeKey(holdNo) {
+        return String(holdNo ?? "")
+          .trim()
+          .toLowerCase();
+      }
+
       /* ── Load Data ── */
       async function loadData() {
         const tbody = document.getElementById("tableBody");
@@ -1170,17 +1191,73 @@
         document.getElementById("statsRow").style.display = "none";
         expandedIdx = null;
         tbody.innerHTML = `<tr><td colspan="9">
-        <div style="text-align:center;padding:56px 16px;color:var(--clr-text-muted);">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--clr-teal)" stroke-width="1.5"
-              stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 14px;" class="spin">
-              <path d="M21 12a9 9 0 11-6.219-8.56"/>
-            </svg>
-            <p style="font-size:13.5px;">Fetching data…</p>
-        </div></td></tr>`;
+              <div style="text-align:center;padding:56px 16px;color:var(--clr-text-muted);">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--clr-teal)" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 14px;" class="spin">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                  </svg>
+                  <p style="font-size:13.5px;">Fetching data…</p>
+              </div></td></tr>`;
         try {
-          const res = await fetch(API_URL);
-          const json = await res.json();
-          allData = json.data && json.data.length ? json.data : [];
+          // NEW: fetch both APIs in parallel
+          const [reworkRes, verificationRes] = await Promise.all([
+            fetch(API_URL),
+            fetch(VERIFICATION_API_URL),
+          ]);
+          const reworkJson = await reworkRes.json();
+          const verificationJson = await verificationRes.json();
+
+          const reworkData =
+            reworkJson.data && reworkJson.data.length ? reworkJson.data : [];
+
+          const verificationData =
+            verificationJson.data && verificationJson.data.length
+              ? verificationJson.data
+              : [];
+
+          console.log("Rework records fetched:", reworkData.length);
+          console.log("Verification records fetched:", verificationData.length);
+
+          // NEW: build a lookup map keyed by Hold_No + "||" + Rework_No
+          const verificationMap = {};
+          verificationData.forEach((v, i) => {
+            console.log(v);
+            const key = makeKey(v.Hold_No);
+            // console.log(!verificationMap[key]);
+            if (!verificationMap[key]) verificationMap[key] = [];
+            verificationMap[key].push(v);
+          });
+
+          // NEW: attach matching verification record(s) to each rework record
+          let matchedCount = 0;
+          reworkData.forEach((r, i) => {
+            console.log(r);
+            const key = makeKey(r.Hold_No);
+            // console.log(i, "ReworkData", r);
+
+            const match = verificationMap[key] || [];
+
+            r.verification = match; // e.g. item.verification
+            if (match.length) {
+              matchedCount++;
+              // console.log(
+              // `✅ Matched verification for Hold_No="${r.Hold_No}" Rework_NO="${r.Rework_NO}" (key="${key}")`,
+              // match,
+              // );
+            } else {
+              // console.log(
+              //   `⛔ No verification match for Hold_No="${r.Hold_No}" Rework_NO="${r.Rework_NO}" (key="${key}")`,
+              // );
+            }
+          });
+          // console.log(
+          //   `Verification matching complete: ${matchedCount}/${reworkData.length} rework records matched.`,
+          // );
+          console.log("Reworkdata", reworkData);
+          console.log("Verifactiondata", verificationData);
+
+          allData = reworkData;
+
           if (!allData.length) {
             tbody.innerHTML = `<tr><td colspan="9"><div style="text-align:center;padding:56px 16px;color:var(--clr-text-muted);"><p style="font-size:13.5px;">No records found.</p></div></td></tr>`;
             document.getElementById("footerCount").textContent = "0 records";
@@ -1190,6 +1267,7 @@
             renderTable(allData);
           }
         } catch (e) {
+          console.error("Error loading dashboard data:", e);
           tbody.innerHTML = `<tr><td colspan="9"><div style="text-align:center;padding:56px 16px;"><p style="font-size:13.5px;color:var(--clr-rose);">Could not load data. Please refresh.</p></div></td></tr>`;
           document.getElementById("footerCount").textContent = "Load failed";
         } finally {
@@ -1199,14 +1277,20 @@
 
       function updateFooterTime() {
         const now = new Date();
-        document.getElementById("footerTime").textContent =
-          "● " +
-          now.toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: true,
-          });
+
+        const formatted = now.toLocaleString("en-GB", {
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        });
+
+        // Output: ● Tue, 08 Sep 2026, 11:45:10 am
+        document.getElementById("footerTime").textContent = `● ${formatted}`;
       }
       updateFooterTime();
       setInterval(updateFooterTime, 1000);
@@ -1285,20 +1369,72 @@
             })
             .join("");
           cards += `
-            <div class="defect-card" style="margin-bottom:10px;">
-              <div class="defect-card-head-row">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--clr-amber-text);background:var(--clr-amber-bg);padding:2px 9px;border-radius:var(--radius-full);">DEFECT ${i}</span>
-                <span class="mono" style="font-size:10.5px;font-weight:700;color:var(--clr-teal-text);background:var(--clr-teal-bg);padding:2px 9px;border-radius:var(--radius-full);">Time: ${dHrs}h ${dMin}m</span>
-              </div>
-              <div class="defect-grid">
-                ${fieldsHtml}
-              </div>
-            </div>`;
+                  <div class="defect-card" style="margin-bottom:10px;">
+                    <div class="defect-card-head-row">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--clr-amber-text);background:var(--clr-amber-bg);padding:2px 9px;border-radius:var(--radius-full);">DEFECT ${i}</span>
+                      <span class="mono" style="font-size:10.5px;font-weight:700;color:var(--clr-teal-text);background:var(--clr-teal-bg);padding:2px 9px;border-radius:var(--radius-full);">Time: ${dHrs}h ${dMin}m</span>
+                    </div>
+                    <div class="defect-grid">
+                      ${fieldsHtml}
+                    </div>
+                  </div>`;
         }
         if (count === 0) {
           return `<div style="padding:18px 4px;color:var(--clr-text-muted);font-size:13px;text-align:center;">No defect entries recorded for this rework.</div>`;
         }
         return cards;
+      }
+
+      /* ── Verification detail block builder ── */
+      function buildVerificationHTML(verificationArr) {
+        if (!verificationArr || !verificationArr.length) {
+          return `<div style="padding:18px 4px;color:var(--clr-text-muted);font-size:13px;text-align:center;">No verification data found.</div>`;
+        }
+
+        const fields = [
+          ["Verified ID", "Verified_ID"],
+          ["QC No", "QC_No"],
+          ["Inspection By", "Inspection_By"],
+          ["OK Qty", "Ok Qty"],
+          ["Not OK Qty", "Not_Ok"],
+          ["Verification Status", "Status"],
+          ["Verified Action", "Verified_Action"],
+          ["Submit Date & Time", "Submit Date&Time"],
+          ["Verification Date & Time", "Verification_DateTime"],
+        ];
+
+        return verificationArr
+          .map((v, i) => {
+            const fieldsHtml = fields
+              .map(([label, key]) => {
+                const val = v[key];
+                if (
+                  val === undefined ||
+                  val === null ||
+                  String(val).trim() === ""
+                )
+                  return "";
+
+                // Label aur value dono ko proper gap aur alignment dena
+                return `
+                <div class="defect-field" style="display: flex; align-items: center; gap: 1px;">
+                  <span class="lbl" style="min-width: 150px; display: inline-block;">${label}</span>
+                  <span class="val" style="flex: 1;">${val}</span>
+                </div>`;
+              })
+              .join("");
+
+            return `
+            <div class="defect-card verification-card" style="margin-bottom:10px;">
+              <div class="defect-card-head-row">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--clr-indigo-text);background:var(--clr-indigo-bg);padding:2px 9px;border-radius:var(--radius-full);">VERIFICATION${verificationArr.length > 1 ? " " + (i + 1) : ""}</span>
+              </div>
+              <div class="defect-grid">
+                ${fieldsHtml}
+              </div>
+            </div>`;
+          })
+          .join("");
       }
 
       /* ── Render Table ── */
@@ -1311,7 +1447,7 @@
         }
         tbody.innerHTML = data
           .map((item, i) => {
-            console.log(item);
+            console.log(item, "RenderData");
             const idx = allData.indexOf(item);
             const qty = item["Rework Qty"];
 
@@ -1327,41 +1463,64 @@
             const statusHtml = item.Status
               ? `<span class="status-pill" style="${statusStyle(item.Status)}">${item.Status}</span>`
               : `<span style="color:#d1d5db;font-size:13px;">—</span>`;
+            const isOpen = String(item.Status).toLowerCase().trim() === "open";
+
             const row = `
-<tr class="data-row${isExpanded ? " expanded" : ""}" id="row-${idx}" onclick="toggleDetails(${idx})">
-    <td class="mono" style="padding:12px 0 12px 16px;color:var(--clr-teal);">
-        <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-    </td>
-    <td class="mono mobile-label" data-label="Rework No" style="padding:12px 16px;font-size:11.5px;color:var(--clr-indigo);font-weight:600;">${item.Rework_NO || "—"}</td>
-    <td class="mobile-label" data-label="Date" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Date || "—"}</td>
-    <td class="mobile-label" data-label="Hold No" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Hold_No || "—"}</td>
-    <td class="mobile-label" data-label="Process" style="padding:12px 16px;"><span style="${pcStyle(pc)}">${item.Process || "—"}</span></td>
-    <td class="mobile-label" data-label="Item Code" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Item_Code || "—"}</td>
-    <td class="mobile-label" data-label="JRC Total" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.JRC_Total || "—"}</td>
-    <td class="mobile-label" data-label="Rework Qty" style="padding:12px 16px;">${qtyHtml}</td>
-    <td class="mobile-label" data-label="Total Time" style="padding:12px 16px;color:var(--clr-text-secondary);">${hours}h ${minutes}m</td>
-    <td class="mobile-label formating" data-label="Status" style="padding:12px 16px;">${item.Status || "-"}</td>
-</tr>`;
+                <tr class="data-row${isExpanded ? " expanded" : ""}" id="row-${idx}" onclick="toggleDetails(${idx})">
+                    <td class="mono" style="padding:12px 0 12px 16px;color:var(--clr-teal);">
+                        <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </td>
+                    <td class="mono mobile-label" data-label="Rework No" style="padding:12px 16px;font-size:11.5px;color:var(--clr-indigo);font-weight:600;">${item.Rework_NO || "—"}</td>
+                    <td class="mobile-label" data-label="Date" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Date || "—"}</td>
+                    <td class="mobile-label" data-label="Hold No" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Hold_No || "—"}</td>
+                    <td class="mobile-label" data-label="Process" style="padding:12px 16px;"><span style="${pcStyle(pc)}">${item.Process || "—"}</span></td>
+                    <td class="mobile-label" data-label="Item Code" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.Item_Code || "—"}</td>
+                    <td class="mobile-label" data-label="JRC Total" style="padding:12px 16px;color:var(--clr-text-secondary);">${item.JRC_Total || "—"}</td>
+                    <td class="mobile-label" data-label="Rework Qty" style="padding:12px 16px;">${qtyHtml}</td>
+                    <td class="mobile-label" data-label="Total Time" style="padding:12px 16px;color:var(--clr-text-secondary);">${hours}h ${minutes}m</td>
+                    <td class="mobile-label formating " data-label="Status" style="padding:12px 0px; text-align:right;">
+                        <span style="
+                  display:inline-block;
+                  padding:2px 6px;
+                  border-radius:9999px;
+                  font-size:12px;
+                  font-weight:700;
+                  text-transform:uppercase;
+                  letter-spacing:0.5px;
+                  background-color:${isOpen ? "#ef4444" : "#22c55e"};
+                  color:${isOpen ? "#ffffff" : "#000000"};
+              ">
+                ${item.Status || "-"}
+                  </span>
+                    </td>
+                </tr>`;
             const detailRow = `
-<tr class="detail-row">
-    <td colspan="9">
-        <div class="detail-wrap${isExpanded ? " open" : ""}" id="wrap-${idx}">
-          <div class="detail-wrap-inner">
-            <div class="detail-content">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-                    <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--clr-text-muted);">
-                        Defect Details — ${item.Rework_NO || ""}
-                    </div>
-                    <div class="mono" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);background:var(--clr-indigo-bg);color:var(--clr-indigo-text);">
-                        Total Rework Time: ${hours}h ${minutes}m
-                    </div>
+      <tr class="detail-row">
+          <td colspan="10">
+              <div class="detail-wrap${isExpanded ? " open" : ""}" id="wrap-${idx}">
+                <div class="detail-wrap-inner">
+                  <div class="detail-content">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                          <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--clr-text-muted);">
+                              Defect Details — ${item.Rework_NO || ""}
+                          </div>
+                          <div class="mono" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);background:var(--clr-indigo-bg);color:var(--clr-indigo-text);">
+                              Total Rework Time: ${hours}h ${minutes}m
+                          </div>
+                      </div>
+                      ${buildDefectHTML(item)}
+
+                      <!-- Verification Details -->
+                      <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--clr-text-muted);margin-top:18px;margin-bottom:10px;">
+                       Verification Details - ${item.verification[0]?.Verified_ID || "N/A"}
+                          
+                      </div>
+                      ${buildVerificationHTML(item.verification)}
+                  </div>
                 </div>
-                ${buildDefectHTML(item)}
-            </div>
-          </div>
-        </div>
-    </td>
-</tr>`;
+              </div>
+          </td>
+      </tr>`;
             return row + detailRow;
           })
           .join("");
