@@ -1006,15 +1006,15 @@
           }
 
           fetchedReworkData.forEach((record) => {
-            if (record.Hold_No && String(record.Hold_No).trim() !== "") {
-              const option = document.createElement("div");
-              option.className = "hold-option";
+  if (record.Hold_No && String(record.Hold_No).trim() !== "") {
+    const option = document.createElement("div");
+    option.className = "hold-option";
 
-              const duration = getPendingDuration(
-                record.Date || record.Created_Date || record.Created_DateTime,
-              );
+    const duration = getPendingDuration(
+      record.Date || record.Created_Date || record.Created_DateTime
+    );
 
-              option.innerHTML = `
+    option.innerHTML = `
       <div style="font-weight:600;">
         ${escapeHtml(record.Hold_No)}
       </div>
@@ -1023,10 +1023,10 @@
       </div>
     `;
 
-              option.onclick = () => selectHoldNumber(record.Hold_No, record);
-              holdOptions.appendChild(option);
-            }
-          });
+    option.onclick = () => selectHoldNumber(record.Hold_No, record);
+    holdOptions.appendChild(option);
+  }
+});
 
           hideMessage();
         } catch (error) {
