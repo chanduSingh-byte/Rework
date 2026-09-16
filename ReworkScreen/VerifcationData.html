@@ -715,6 +715,110 @@
                 width: 6px;
                 height: 6px;
                 border-radius: 50%;
+                background: var(--clr-teal);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: red;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              Open
+            </div>
+          </div>
+          <div
+            id="Open"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: red;
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--clr-teal);
+              "
+            ></div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: green;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
+            >
+              Verified
+            </div>
+          </div>
+          <div
+            id="Verified"
+            class="disp"
+            style="
+              font-size: 26px;
+              font-weight: 700;
+              color: green;
+              letter-spacing: -0.02em;
+              line-height: 1;
+            "
+          >
+            —
+          </div>
+        </div>
+
+        <div
+          class="stat-tile"
+          style="
+            background: var(--clr-bg-card);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
                 background: var(--clr-amber);
               "
             ></div>
@@ -1124,8 +1228,8 @@
         "https://script.google.com/macros/s/AKfycbw9GlY3krvMnMaW5-sDub0FVpoUh-8ZF0qzbWYh5INcmb5hxy4biPcYl-F6FKOjCKvW/exec?action=data";
 
       // NEW: Verification data endpoint (same Apps Script, different action)
-       const VERIFICATION_API_URL =
-      "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=verifactiondata";
+      const VERIFICATION_API_URL =
+        "https://script.google.com/macros/s/AKfycbwQlwdltgwclAM3JptcflN9YNuyHh8oHsyfdaSge6G8M_WEuKUxmwvlNlR_r29vvm9U/exec?action=verifactiondata";
 
       /* ── Process badge color cycling ── */
       const PROCESS_COLORS = ["p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
@@ -1310,6 +1414,7 @@
 
       /* ── Stats ── */
       function updateStats(data) {
+        console.log(data);
         const qty = data.reduce(
           (a, r) => a + (parseFloat(r["Rework Qty"]) || 0),
           0,
@@ -1325,6 +1430,14 @@
         const tm = totalMin % 60;
 
         document.getElementById("statTotal").textContent = data.length;
+        document.getElementById("Open").textContent = data.filter(
+          (d) => d.Status === "Open",
+        ).length;
+
+        document.getElementById("Verified").textContent = data.filter(
+          (d) => d.Status === "VERIFIED",
+        ).length;
+
         document.getElementById("statQty").textContent =
           Math.round(qty).toLocaleString();
         document.getElementById("statJRC").textContent =
